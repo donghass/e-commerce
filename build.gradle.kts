@@ -34,7 +34,17 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+	// Lombok
+	compileOnly("org.projectlombok:lombok:1.18.30")
+	annotationProcessor("org.projectlombok:lombok:1.18.30")
 
+	// 테스트 코드에서도 Lombok 쓰려면 아래도 추가 (선택)
+	testCompileOnly("org.projectlombok:lombok:1.18.30")
+	testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+
+	//Swagger
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
     // DB
 	runtimeOnly("com.mysql:mysql-connector-j")
 
