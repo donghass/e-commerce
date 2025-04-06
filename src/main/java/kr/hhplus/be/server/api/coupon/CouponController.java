@@ -1,20 +1,16 @@
-package kr.hhplus.be.server.controller.mock;
+package kr.hhplus.be.server.api.coupon;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import kr.hhplus.be.server.config.jpa.request.CouponIssueRequest;
-import kr.hhplus.be.server.config.jpa.response.CommonResponse;
-import kr.hhplus.be.server.config.jpa.response.CouponResponse;
-import org.springframework.context.annotation.Profile;
+import kr.hhplus.be.server.api.CommonResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/coupons")
-public class CouponController {
-    @Operation(summary = "사용자 쿠폰 조회", description = "userId를 이용해 해당 사용자의 보유 쿠폰 목록을 조회합니다.")
+public class CouponController implements CouponControllerDocs {
+//    @Operation(summary = "사용자 쿠폰 조회", description = "userId를 이용해 해당 사용자의 보유 쿠폰 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<CommonResponse<List<CouponResponse>>> getCoupons(
         @RequestParam @NotNull(message = "userId는 필수입니다.")

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config.jpa.request;
+package kr.hhplus.be.server.api.point;
 
 import lombok.Getter;
 

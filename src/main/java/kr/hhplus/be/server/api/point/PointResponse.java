@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config.jpa.response;
+package kr.hhplus.be.server.api.point;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config.jpa.response;
+package kr.hhplus.be.server.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,4 +10,5 @@ public class CommonResponse<T> {
     private String status;
     private String message;
     private T data;
+
 }

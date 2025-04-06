@@ -1,9 +1,9 @@
-package kr.hhplus.be.server.config.jpa.request;
+package kr.hhplus.be.server.api.point;
 
 import lombok.Getter;
 
 @Getter
-public class ChargeRequest {
+public class ChargePointRequest {
     private Long userId;
     private Long amount;
 }

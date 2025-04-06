@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config.jpa.response;
+package kr.hhplus.be.server.api.coupon;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
