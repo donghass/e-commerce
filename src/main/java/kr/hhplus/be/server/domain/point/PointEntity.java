@@ -9,6 +9,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
@@ -31,4 +33,9 @@ public class PointEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt;
+
+    public void charge(Long amount) {
+        if(this.balance + amount > 5000000){throw new BusinessException(PointErrorCode.EXCEED_TOTAL_CHARGE_LIMIT);}
+        this.balance += amount;
+    }
 }

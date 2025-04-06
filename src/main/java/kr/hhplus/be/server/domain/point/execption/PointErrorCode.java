@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.application.point.execption;
+package kr.hhplus.be.server.domain.point.execption;
 
 import kr.hhplus.be.server.common.response.BaseResponseCode;
 import lombok.Getter;
