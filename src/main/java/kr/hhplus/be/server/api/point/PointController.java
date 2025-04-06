@@ -1,8 +1,9 @@
 package kr.hhplus.be.server.api.point;
 
-import kr.hhplus.be.server.api.CommonResponse;
+import kr.hhplus.be.server.common.response.CommonResponse;
 import kr.hhplus.be.server.application.point.PointDto;
 import kr.hhplus.be.server.application.point.PointFacade;
+import kr.hhplus.be.server.common.response.ResponseCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,12 +42,7 @@ public class PointController implements PointControllerDocs {
             .balance(pointDto.getBalance())
             .build();
 
-        CommonResponse<PointResponse> response = new CommonResponse<>(
-            code,
-            "OK",
-            "요청이 정상적으로 처리되었습니다.",
-            point
-        );
+        CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, point);
 
         return ResponseEntity.ok(response);
     }

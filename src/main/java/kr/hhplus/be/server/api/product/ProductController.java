@@ -3,7 +3,7 @@ package kr.hhplus.be.server.api.product;
 
 import java.util.Arrays;
 import java.util.List;
-import kr.hhplus.be.server.api.CommonResponse;
+import kr.hhplus.be.server.common.response.CommonResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

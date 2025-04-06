@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.api.order;
 
 import jakarta.validation.Valid;
-import kr.hhplus.be.server.api.CommonResponse;
+import kr.hhplus.be.server.common.response.CommonResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
