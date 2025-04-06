@@ -1,6 +1,10 @@
 package kr.hhplus.be.server.api.point;
 
 import kr.hhplus.be.server.api.CommonResponse;
+import kr.hhplus.be.server.application.point.PointDto;
+import kr.hhplus.be.server.application.point.PointFacade;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/points")
+@RequiredArgsConstructor    // 생성자 자동 생성
 public class PointController implements PointControllerDocs {
+
+    @Autowired
+    private final PointFacade pointFacade;
+
 //    @Operation(summary = "사용자 포인트 충전", description = "사용자 포인트를 충전합니다.")
     @PostMapping("/charge")
     public ResponseEntity<CommonResponse<PointResponse>> charge(@RequestBody ChargePointRequest request) {
@@ -22,17 +31,24 @@ public class PointController implements PointControllerDocs {
     }
 //    @Operation(summary = "사용자 포인트 조회", description = "사용자 포인트를 조회합니다.")
     @GetMapping("/userId={userId}")
-    public ResponseEntity<PointResponse> getPoint(@PathVariable Long userId) {
-        // Mock 데이터 생성
-        PointResponse dto = new PointResponse();
+    public ResponseEntity<CommonResponse<PointResponse>> getPoint(@PathVariable Long userId) {
+
+        PointDto pointDto = pointFacade.getPoint(userId);
+
+        // DTO → Response 객체로 변환
+        PointResponse point = PointResponse.builder()
+            .userId(pointDto.getUserId())
+            .balance(pointDto.getBalance())
+            .build();
+
         CommonResponse<PointResponse> response = new CommonResponse<>(
-            200,
+            code,
             "OK",
             "요청이 정상적으로 처리되었습니다.",
-            dto
+            point
         );
 
-        return ResponseEntity.ok(response.getData());
+        return ResponseEntity.ok(response);
     }
 //  결제
     @PostMapping("/use")

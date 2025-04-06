@@ -54,7 +54,7 @@ public interface PointControllerDocs {
             )
         }
     )
-    public ResponseEntity<PointResponse> getPoint(@PathVariable Long userId);
+    public ResponseEntity<CommonResponse<PointResponse>> getPoint(@PathVariable Long userId);
 
     @Operation(
         summary = "포인트 충전 API",

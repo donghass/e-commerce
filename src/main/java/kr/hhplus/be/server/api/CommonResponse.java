@@ -12,3 +12,4 @@ public class CommonResponse<T> {
     private T data;
 
 }
+
