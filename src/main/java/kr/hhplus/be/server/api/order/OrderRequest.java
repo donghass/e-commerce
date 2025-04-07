@@ -7,6 +7,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.util.ArrayList;
+import java.util.List;
+import kr.hhplus.be.server.application.order.OrderCommand;
+import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
+import kr.hhplus.be.server.application.point.ChargePointCommand;
 import lombok.Data;
 import lombok.Getter;
 
@@ -33,5 +37,13 @@ public class OrderRequest {
         @NotNull(message = "quantity는 필수입니다.")
         @Min(value = 1, message = "quantity는 최소 1 이상이어야 합니다.")
         private Integer quantity;
+    }
+
+    public OrderCommand toCommand() {
+        List<OrderProduct> orderProducts = orderItems.stream()
+            .map(item -> new OrderCommand.OrderProduct(item.getProductId(), item.getQuantity()))
+            .toList();
+
+        return new OrderCommand(userId, userCouponId, orderProducts);
     }
 }
