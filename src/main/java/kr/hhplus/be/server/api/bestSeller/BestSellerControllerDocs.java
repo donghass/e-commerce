@@ -17,32 +17,32 @@ import org.springframework.http.ResponseEntity;
 @Tag(name = "[상품]", description = "상품 관련 API 입니다.")
 public interface BestSellerControllerDocs {
 
-    @Operation(
-        summary = "상위 상품 조회 API",
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "상위 상품 조회 성공",
-                content = @Content(
-                    mediaType = APPLICATION_JSON_VALUE,
-                    schemaProperties = {
-                        @SchemaProperty(name = "code", schema = @Schema(type = "string", example = "SUCCESS", description = "코드")),
-                        @SchemaProperty(name = "data", schema = @Schema(implementation = BestSellerProductResponse.class))
-                    }
-                )
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "서버 에러 발생",
-                content = @Content(
-                    mediaType = APPLICATION_JSON_VALUE,
-                    schemaProperties = {
-                        @SchemaProperty(name = "code", schema = @Schema(type = "string", example = "SERVER_ERROR", description = "코드")),
-                        @SchemaProperty(name = "msg", schema = @Schema(type = "string", example = "예기치 못한 오류가 발생하였습니다.", description = "메세지"))
-                    }
-                )
-            )
-        }
-    )
-    public ResponseEntity<CommonResponse<List<ProductListResponse>>> getPopularProducts();
+//    @Operation(
+//        summary = "상위 상품 조회 API",
+//        responses = {
+//            @ApiResponse(
+//                responseCode = "200",
+//                description = "상위 상품 조회 성공",
+//                content = @Content(
+//                    mediaType = APPLICATION_JSON_VALUE,
+//                    schemaProperties = {
+//                        @SchemaProperty(name = "code", schema = @Schema(type = "string", example = "SUCCESS", description = "코드")),
+//                        @SchemaProperty(name = "data", schema = @Schema(implementation = BestSellerProductResponse.class))
+//                    }
+//                )
+//            ),
+//            @ApiResponse(
+//                responseCode = "500",
+//                description = "서버 에러 발생",
+//                content = @Content(
+//                    mediaType = APPLICATION_JSON_VALUE,
+//                    schemaProperties = {
+//                        @SchemaProperty(name = "code", schema = @Schema(type = "string", example = "SERVER_ERROR", description = "코드")),
+//                        @SchemaProperty(name = "msg", schema = @Schema(type = "string", example = "예기치 못한 오류가 발생하였습니다.", description = "메세지"))
+//                    }
+//                )
+//            )
+//        }
+//    )
+//    public ResponseEntity<CommonResponse<List<ProductListResponse>>> getPopularProducts();
 }

@@ -10,19 +10,15 @@ public enum OrderErrorCode implements BaseResponseCode {
 
     // 400 - 잘못된 요청
     INVALID_USER_ID(400, "사용자 ID 유효하지 않음", "유효하지 않은 사용자 ID입니다."),
-    INVALID_PRODUCT_ID(400, "상품 ID 유효하지 않음", "유효하지 않은 상품 ID입니다."),
+    INVALID_ORDER_ID(400, "주문 ID 유효하지 않음", "유효하지 않은 주문 ID입니다."),
     INVALID_QUANTITY(400, "수량 요청 유효하지 않음", "수량은 1 이상이어야 합니다."),
-    INVALID_COUPON_ID(400, "쿠폰 ID 유효하지 않음", "유효하지 않은 쿠폰 ID입니다."),
 
     // 404 - 리소스 없음
     USER_NOT_FOUND(404, "사용자 존재하지 않음", "사용자를 찾을 수 없습니다."),
-    PRODUCT_NOT_FOUND(404, "상품 존재하지 않음", "상품을 찾을 수 없습니다."),
+    ORDER_NOT_FOUND(404, "주문 존재하지 않음", "주문을 찾을 수 없습니다."),
 
     // 409 - 비즈니스 충돌
-    OUT_OF_STOCK(409, "재고 부족", "재고가 부족합니다."),
-    COUPON_NOT_OWNED(409, "쿠폰 보유하지 않음", "해당 쿠폰을 보유하고 있지 않습니다."),
-    COUPON_EXPIRED(409, "쿠폰 유효기간 초과", "쿠폰 유효기간이 지났거나 아직 유효하지 않습니다."),
-    COUPON_ALREADY_USED(409, "쿠폰 이미 사용됨", "이미 사용된 쿠폰입니다.");
+    ORDER_STATUS_INVALID(409, "주문 상태가 결제 불가능", "결제가 불가능한 주문 상태입니다.");
 
 
     private final int code;         // HTTP 상태 코드

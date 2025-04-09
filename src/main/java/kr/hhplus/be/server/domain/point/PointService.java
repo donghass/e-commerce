@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.point;
 import kr.hhplus.be.server.application.point.ChargePointCommand;
 import kr.hhplus.be.server.application.point.PointDto;
 import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PointService {
     private final PointRepository pointRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     // 포인트 조회
     public PointDto readPoint(Long userId) {
@@ -33,5 +35,24 @@ public class PointService {
 
         return new PointDto(point.getUserId(), point.getBalance());
     }
+
+    // 포인트 사용
+    public void UseAndHistoryPoint(OrderEntity order,Long userBalance){
+        Long balance = userBalance - order.getTotalAmount(); // 사용 후 금액 = 현재 사용자 포인트 - 주문 금액
+        if(balance <= 0){
+            throw new BusinessException(PointErrorCode.POINT_BALANCE_INSUFFICIENT);
+        }
+        pointRepository.usePoint(order.getUserId(), balance);
+
+        PointEntity point = pointRepository.findByUserId(order.getUserId())
+            .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));
+
+        PointHistoryEntity pointHistory = new PointHistoryEntity();
+        pointHistory.setPointId(point.getId());
+        pointHistory.setBalance(balance);
+        pointHistory.setAmount(order.getTotalAmount());
+        pointHistoryRepository.save(pointHistory);
+    }
+
 
 }

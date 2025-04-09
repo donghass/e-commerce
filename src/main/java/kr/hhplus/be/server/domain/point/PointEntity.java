@@ -33,7 +33,7 @@ public class PointEntity {
     @CreationTimestamp
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable = false, name = "updatedAt")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     public void charge(Long amount) {
         if(this.balance + amount > 5000000){throw new BusinessException(PointErrorCode.EXCEED_TOTAL_CHARGE_LIMIT);}

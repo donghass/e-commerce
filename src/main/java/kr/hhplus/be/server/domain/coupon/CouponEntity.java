@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.product;
+package kr.hhplus.be.server.domain.coupon;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,20 +11,25 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 
-@Table(name="product")
+
+@Table(name="coupon")
 @Data
 @DynamicUpdate // 실제 변경한 컬럼만 업데이트
 @Entity
-public class ProductEntity {
+public class CouponEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) //pk의 sequential 값을 자동 증가
     private Long id;
     @Column(nullable = false, name = "name")
     private String name;
-    @Column(name = "description")
-    private String description;
-    @Column(nullable = false, name = "price")
-    private Long price;
+    @Column(nullable = false, name = "discountValue")
+    private Long discountValue;
+    @Column(nullable = false, name = "discountType")
+    private DiscountType discountType;
+    @Column(nullable = false, name = "startDate")
+    private LocalDateTime startDate;
+    @Column(nullable = false, name = "endDate")
+    private LocalDateTime endDate;
     @Column(nullable = false, name = "stock")
     private Long stock;
     @Column(nullable = false, name = "createdAt")
@@ -32,4 +37,11 @@ public class ProductEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+
+    public enum DiscountType {
+        RATE,       // 정률
+        AMOUNT      // 정액
+    }
 }
+

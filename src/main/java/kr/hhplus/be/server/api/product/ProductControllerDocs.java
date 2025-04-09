@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import kr.hhplus.be.server.common.response.CommonResponse;
-import kr.hhplus.be.server.api.bestSeller.BestSellerProductResponse;
 import org.springframework.http.ResponseEntity;
 
 @Tag(name = "[상품]", description = "상품 관련 API 입니다.")

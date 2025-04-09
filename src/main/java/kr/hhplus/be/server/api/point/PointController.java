@@ -58,27 +58,13 @@ public class PointController implements PointControllerDocs {
     }
 //  결제
     @PostMapping("/use")
-    public ResponseEntity<?> usePoints(@RequestBody UsePointsRequest request) {
-        // 1. 주문 ID에 해당하는 주문 상태를 조회
-        boolean isOrderValid = checkOrderStatus(request.getOrderId());
+    public ResponseEntity<CommonResponse<PointResponse>> usePoint(@RequestBody UsePointsRequest request) {
+        pointFacade.usePoint(request.getOrderId());
 
-        // 2. 포인트 잔액 조회 (예시로 100,000원이라고 가정)
-        long availablePoints = 100000;  // 포인트 잔액 100,000원
-        long paymentAmount = request.getOrderId();  // 결제 금액 (orderId와 실제 결제 금액이 매핑되는 구조일 것)
-
-        // 5. 성공적으로 처리되면 204 No Content 반환
-        return ResponseEntity.noContent().build();
+        // 성공적으로 처리되면 204 No Content 반환
+        return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS));
     }
 
-    // 주문 상태 확인 (예시)
-    private boolean checkOrderStatus(Long orderId) {
-        // 실제로는 DB에서 주문 상태를 조회해야 합니다.
-        // 예시로 orderId가 1이면 EXPIRED 상태로 처리
-        if (orderId == 1) {
-            return false; // EXPIRED 상태로 처리
-        }
 
-        return true; // 그 외의 상태는 정상
-    }
 
 }

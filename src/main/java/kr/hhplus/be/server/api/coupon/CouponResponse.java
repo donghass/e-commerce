@@ -1,18 +1,17 @@
 package kr.hhplus.be.server.api.coupon;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Date;
 
-@Data
-@AllArgsConstructor
-public class CouponResponse {
-    private Long couponId;
-    private String couponName;
-    private String type;
-    private String discountAmount; // 또는 int, Integer → 타입 정확히 맞추기
-    private Date startDate;
-    private Date endDate;
-    private String status;
-}
+public record CouponResponse(
+    Long couponId,
+    String couponName,
+    String type,
+    Long discountAmount, // 타입을 int로 하고 싶으면 여기서 변경 가능
+    LocalDateTime startDate,
+    LocalDateTime endDate,
+    String status
+) {}

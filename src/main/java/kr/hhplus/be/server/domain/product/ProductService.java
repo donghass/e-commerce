@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.product;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
 import kr.hhplus.be.server.application.product.ProductDto;
@@ -28,7 +30,8 @@ public class ProductService {
             .collect(Collectors.toList());
     }
 
-    public void readQuantity(List<OrderProduct> orderProduct){
+    public Long readOrder(List<OrderProduct> orderProduct){
+        Long totalAmount = 0L;
         for(int i = 0; i < orderProduct.size(); i++){
             Long productId = orderProduct.get(i).productId();
             Long quantity = orderProduct.get(i).quantity();
@@ -44,7 +47,10 @@ public class ProductService {
             }
             updateQuantity = currentStock - quantity;
             productRepository.updateStock(productId, updateQuantity);
-        }
 
+            totalAmount += product.getPrice() * quantity;
+        }
+        // 주문 총액
+        return totalAmount;
     }
 }

@@ -36,7 +36,7 @@ public class OrderRequest {
 
         @NotNull(message = "quantity는 필수입니다.")
         @Min(value = 1, message = "quantity는 최소 1 이상이어야 합니다.")
-        private Integer quantity;
+        private Long quantity;
     }
 
     public OrderCommand toCommand() {

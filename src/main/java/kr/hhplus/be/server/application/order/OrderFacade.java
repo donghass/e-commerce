@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.api.order.OrderRequest.OrderItem;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
+import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.product.ProductService;
@@ -19,10 +20,10 @@ public class OrderFacade {
 
 
     public OrderDto createOrder(OrderCommand command) {
-        productService.readQuantity(command.orderItem());
-        Long amount= couponService.useCoupon(command.userCouponId());
-
-        return orderService.createOrder(command);
+        Long totalAmount = productService.readOrder(command.orderItem());
+        CouponDiscountResult discount = couponService.useCoupon(command.userCouponId());
+        Long orderId = orderService.createOrder(command,totalAmount,discount);
+        return new OrderDto(orderId);
     }
 
 

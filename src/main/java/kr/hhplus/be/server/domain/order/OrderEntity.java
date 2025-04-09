@@ -27,22 +27,22 @@ public class OrderEntity {
     private Long userId;
     @Column(nullable = false, name = "userCouponId")
     private Long userCouponId;
-    @Column(nullable = false, name = "isCouponApplied")
-    private Long isCouponApplied;
+    //@Column(nullable = false, name = "isCouponApplied")   userCoupon에서 쿠폰사용여부 값 있고 order에 쿠폰 사용일 경우에만 userCouponId 들어오기 떄문에 필요 없다
+    //private Long isCouponApplied;
     @Column(nullable = false, name = "totalAmount")
     private Long totalAmount;
     @Column(nullable = false, name = "status")
-    private PaymentStatus status;
+    private PaymentStatus status = PaymentStatus.NOT_PAID;
     @Column(nullable = false, name = "createdAt")
     @CreationTimestamp
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable = false, name = "updatedAt")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
 
     public enum PaymentStatus {
-        PAID,       // 결제 완료
-        NOT_PAID      // 미결제
+        NOT_PAID,      // 미결제
+        PAID      // 결제
     }
 }
 
