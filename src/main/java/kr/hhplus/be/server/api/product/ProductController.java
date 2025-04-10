@@ -8,9 +8,11 @@ import kr.hhplus.be.server.application.product.ProductFacade;
 import kr.hhplus.be.server.common.response.CommonResponse;
 import kr.hhplus.be.server.common.response.ResponseCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 // 상품 목록 조회 API
@@ -23,12 +25,16 @@ public class ProductController implements ProductControllerDocs {
 
     // 상품 목록 조회 API
     @GetMapping
-    public ResponseEntity<CommonResponse<List<ProductListResponse>>> getProductList() {
+    public ResponseEntity<CommonResponse<Page<ProductListResponse>>> getProductList(@RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
 
-        List<ProductDto> productDto = productFacade.readProductList();
+//      Page<ProductDto> productDto = productFacade.readProductList();
 //      ProductListResponse 에서 productDto 를 ProductListResponse 로 List 로 담아서 반환해줌
-        CommonResponse<List<ProductListResponse>> response = CommonResponse.success(ResponseCode.SUCCESS, ProductListResponse.from(productDto));
+//      CommonResponse<Page<ProductListResponse>> response = CommonResponse.success(ResponseCode.SUCCESS, ProductListResponse.from(productDto));
+        Page<ProductDto> productDtoPage = productFacade.readProductList(page, size);
+        Page<ProductListResponse> responsePage = productDtoPage.map(ProductListResponse::from);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, responsePage));
+//      return ResponseEntity.ok(response);
     }
 }

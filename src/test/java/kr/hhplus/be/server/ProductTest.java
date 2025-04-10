@@ -18,6 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class ProductTest {
@@ -30,6 +32,8 @@ class ProductTest {
 
     @Test
     void readProductListTest() {
+        int page = 1;
+        int size = 5;
         // Arrange
         List<ProductQueryDto> queryDto = List.of(
             new ProductQueryDto(1L, "상품A", 1000L, 10L),
@@ -39,7 +43,7 @@ class ProductTest {
         when(productRepository.findAllPoints()).thenReturn(queryDto);
 
         // Act
-        List<ProductDto> result = productService.readProductList();
+        Page<ProductDto> result = productService.readProductList(PageRequest.of(page, size));
 
         // Assert // 결과 사이즈가 2인지 검증
         assertThat(result).hasSize(2);

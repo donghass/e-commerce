@@ -42,7 +42,13 @@ public class OrderEntity {
 
     public enum PaymentStatus {
         NOT_PAID,      // 미결제
-        PAID      // 결제
+        PAID,      // 결제
+        CANCELED,   // 주문취소
+        EXPIRED     // 주문시간 초과
+    }
+
+    public void updateStatus(PaymentStatus status) {
+        this.status = status;
     }
 }
 

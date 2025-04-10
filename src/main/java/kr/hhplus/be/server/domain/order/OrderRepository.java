@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.order;
 
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository {
@@ -10,4 +12,6 @@ public interface OrderRepository {
     Optional<OrderEntity> findById(Long orderId);
 
     void updateOrderStatus(Long orderId);
+
+    List<OrderEntity> findUnpaidOrdersOlderThan(LocalDateTime expiredOrder);
 }

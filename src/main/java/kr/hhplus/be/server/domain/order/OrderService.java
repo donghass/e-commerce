@@ -1,8 +1,11 @@
 package kr.hhplus.be.server.domain.order;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
+import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,4 +46,16 @@ public class OrderService {
         orderRepository.updateOrderStatus(orderId);
     }
 
+    // 5분 주기로 주문 생성 5분 지난 주문건 취소 스케줄러
+    @Transactional
+    public void expireOldUnpaidOrders() {
+        LocalDateTime expiredOrder = LocalDateTime.now().minusMinutes(5);
+        List<OrderEntity> expiredOrders = orderRepository.findUnpaidOrdersOlderThan(expiredOrder);
+
+        for (OrderEntity order : expiredOrders) {
+            order.updateStatus(PaymentStatus.EXPIRED);
+        }
+
+        // 변경 사항 자동 커밋 (JPA flush)
+    }
 }

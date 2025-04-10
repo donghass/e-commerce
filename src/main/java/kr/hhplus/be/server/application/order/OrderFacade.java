@@ -18,7 +18,7 @@ public class OrderFacade {
 
 
 
-
+    // 주문
     public OrderDto createOrder(OrderCommand command) {
         Long totalAmount = productService.readOrder(command.orderItem());
         CouponDiscountResult discount = couponService.useCoupon(command.userCouponId());

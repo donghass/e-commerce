@@ -9,6 +9,7 @@ import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor    // 생성자 자동 생성
@@ -34,6 +35,7 @@ public class PointFacade {
     }
 
     // 결재
+    @Transactional
     public void usePoint(Long orderId){
         OrderEntity order = orderService.readOrder(orderId);
         PointDto point = pointService.readPoint(order.getUserId());
@@ -41,5 +43,8 @@ public class PointFacade {
         pointService.UseAndHistoryPoint(order,point.balance());
 
         orderService.updateOrderStatus(orderId);
+
+        // 외부 데이터 플랫폼에 전송  -- 트랜잭션 분리
+        pointService.sendToDataPlatform(order);
     }
 }

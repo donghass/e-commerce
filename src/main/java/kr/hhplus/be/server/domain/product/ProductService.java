@@ -10,6 +10,8 @@ import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
 import kr.hhplus.be.server.infra.product.ProductQueryDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,17 +19,23 @@ import org.springframework.stereotype.Service;
 public class ProductService {
     private final ProductRepository productRepository;
     // 상품 리스트 조회
-    public List<ProductDto> readProductList() {
-        List<ProductQueryDto> product = productRepository.findAllPoints();
+    public Page<ProductDto> readProductList(Pageable pageable) {
+        Page<ProductQueryDto> product = productRepository.findPagedProducts(pageable);
 
         // 엔티티를 DTO로 변환
-        return product.stream()
-            .map(productDto -> new ProductDto(
-                productDto.getId(),
-                productDto.getName(),
-                productDto.getPrice(),
-                productDto.getStock()))
-            .collect(Collectors.toList());
+//        return product.stream()
+//            .map(productDto -> new ProductDto(
+//                productDto.getId(),
+//                productDto.getName(),
+//                productDto.getPrice(),
+//                productDto.getStock()))
+//            .collect(Collectors.toList());
+        return product.map(p -> new ProductDto(
+            p.getId(),
+            p.getName(),
+            p.getPrice(),
+            p.getStock()
+        ));
     }
 
     public Long readOrder(List<OrderProduct> orderProduct){
