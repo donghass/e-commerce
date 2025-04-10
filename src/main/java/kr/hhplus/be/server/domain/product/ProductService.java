@@ -38,7 +38,7 @@ public class ProductService {
         ));
     }
 
-    public Long readOrder(List<OrderProduct> orderProduct){
+    public Long readOrderProduct(List<OrderProduct> orderProduct){
         Long totalAmount = 0L;
         for(int i = 0; i < orderProduct.size(); i++){
             Long productId = orderProduct.get(i).productId();
@@ -53,6 +53,7 @@ public class ProductService {
             if (quantity > currentStock) {
                 throw new BusinessException(ProductErrorCode.INVALID_QUANTITY);
             }
+            // 재고 차감
             updateQuantity = currentStock - quantity;
             productRepository.updateStock(productId, updateQuantity);
 

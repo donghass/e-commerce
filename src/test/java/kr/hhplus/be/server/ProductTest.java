@@ -19,7 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ProductTest {
@@ -32,15 +34,17 @@ class ProductTest {
 
     @Test
     void readProductListTest() {
+        // Arrange
         int page = 1;
         int size = 5;
-        // Arrange
-        List<ProductQueryDto> queryDto = List.of(
+        Pageable pageable = PageRequest.of(page, size);
+
+        List<ProductQueryDto> content = List.of(
             new ProductQueryDto(1L, "상품A", 1000L, 10L),
             new ProductQueryDto(2L, "상품B", 2000L, 5L)
         );
-        // productRepository.findAllPoints() 호출하면 만들어둔 queryDtos 반환
-        when(productRepository.findAllPoints()).thenReturn(queryDto);
+
+        Page<ProductQueryDto> queryDtoPage = new PageImpl<>(content, pageable, content.size());
 
         // Act
         Page<ProductDto> result = productService.readProductList(PageRequest.of(page, size));
@@ -85,7 +89,7 @@ class ProductTest {
         when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
 
         // Act
-        Long result = productService.readOrder(orderList);
+        Long result = productService.readOrderProduct(orderList);
 
         // Assert
         assertThat(result).isEqualTo(2000L + 2000L); // 2*1000 + 1*2000 = 4000

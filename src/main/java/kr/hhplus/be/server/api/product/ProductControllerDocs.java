@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import kr.hhplus.be.server.common.response.CommonResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -55,7 +56,7 @@ public interface ProductControllerDocs {
             )
         }
     )
-    ResponseEntity<CommonResponse<List<ProductListResponse>>> getProductList(@RequestParam(defaultValue = "0") int page,
+    ResponseEntity<CommonResponse<Page<ProductListResponse>>> getProductList(@RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size);
 
 }

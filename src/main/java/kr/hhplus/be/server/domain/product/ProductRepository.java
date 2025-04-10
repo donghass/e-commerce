@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.product;
 
-import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.infra.product.ProductQueryDto;
 import org.springframework.data.domain.Page;
