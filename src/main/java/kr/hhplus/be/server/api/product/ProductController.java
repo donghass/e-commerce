@@ -1,9 +1,7 @@
 package kr.hhplus.be.server.api.product;
 
 
-import java.util.List;
-import java.util.stream.Collectors;
-import kr.hhplus.be.server.application.product.ProductDto;
+import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.application.product.ProductFacade;
 import kr.hhplus.be.server.common.response.CommonResponse;
 import kr.hhplus.be.server.common.response.ResponseCode;
@@ -31,7 +29,7 @@ public class ProductController implements ProductControllerDocs {
 //      Page<ProductDto> productDto = productFacade.readProductList();
 //      ProductListResponse 에서 productDto 를 ProductListResponse 로 List 로 담아서 반환해줌
 //      CommonResponse<Page<ProductListResponse>> response = CommonResponse.success(ResponseCode.SUCCESS, ProductListResponse.from(productDto));
-        Page<ProductDto> productDtoPage = productFacade.readProductList(page, size);
+        Page<ProductResult> productDtoPage = productFacade.readProductList(page, size);
         Page<ProductListResponse> responsePage = productDtoPage.map(ProductListResponse::from);
 
         return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, responsePage));

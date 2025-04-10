@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
-import kr.hhplus.be.server.application.product.ProductDto;
+import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.ProductService;
@@ -47,7 +47,7 @@ class ProductTest {
         Page<ProductQueryDto> queryDtoPage = new PageImpl<>(content, pageable, content.size());
 
         // Act
-        Page<ProductDto> result = productService.readProductList(PageRequest.of(page, size));
+        Page<ProductResult> result = productService.readProductList(PageRequest.of(page, size));
 
         // Assert // 결과 사이즈가 2인지 검증
         assertThat(result).hasSize(2);
@@ -55,7 +55,7 @@ class ProductTest {
         //결과 리스트 안의 각 요소에서 "name"과 "price" 필드만 추출해서
         //두 상품이 정확히 그 순서와 값으로 들어 있는지 검증
         assertThat(result)
-            .extracting(ProductDto::name, ProductDto::price)
+            .extracting(ProductResult::name, ProductResult::price)
             .containsExactly(
                 tuple("상품A", 1000L),
                 tuple("상품B", 2000L)

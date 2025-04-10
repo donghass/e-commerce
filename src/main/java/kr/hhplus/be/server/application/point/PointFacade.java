@@ -19,14 +19,14 @@ public class PointFacade {
     private final ProductService productService;
     private final CouponService couponService;
 
-    public PointDto readPoint(Long userId) {
+    public PointResult readPoint(Long userId) {
         if (userId <= 0) {
             throw new BusinessException(PointErrorCode.INVALID_USER_ID);
         }
         return pointService.readPoint(userId);
     }
 
-    public PointDto chargePoint(ChargePointCommand command){
+    public PointResult chargePoint(ChargePointCommand command){
         if (command.userId() <= 0) {throw new BusinessException(PointErrorCode.INVALID_USER_ID);}
         if (command.amount() <= 0) {throw new BusinessException(PointErrorCode.INVALID_CHARGE_AMOUNT);}
         if (command.amount() > 1000000) {throw new BusinessException(PointErrorCode.EXCEED_ONE_TIME_LIMIT);}
@@ -38,7 +38,7 @@ public class PointFacade {
     @Transactional
     public void usePoint(Long orderId){
         OrderEntity order = orderService.readOrder(orderId);
-        PointDto point = pointService.readPoint(order.getUserId());
+        PointResult point = pointService.readPoint(order.getUserId());
 
         pointService.UseAndHistoryPoint(order,point.balance());
 

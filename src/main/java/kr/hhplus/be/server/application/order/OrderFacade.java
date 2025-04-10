@@ -19,14 +19,14 @@ public class OrderFacade {
 
 
     // 주문
-    public OrderDto createOrder(OrderCommand command) {
+    public OrderResult createOrder(OrderCommand command) {
         // 주문 상품으로 주문총액 조회
         Long totalAmount = productService.readOrderProduct(command.orderItem());
         // 쿠폰 할인 가격 조회
         CouponDiscountResult discount = couponService.useCoupon(command.userCouponId());
         // 주문 생성
         Long orderId = orderService.createOrder(command,totalAmount,discount);
-        return new OrderDto(orderId);
+        return new OrderResult(orderId);
     }
 
 

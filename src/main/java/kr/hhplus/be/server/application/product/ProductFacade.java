@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProductFacade {
     private final ProductService productService;
-    public Page<ProductDto> readProductList(int page, int size) {
+    public Page<ProductResult> readProductList(int page, int size) {
 
         return productService.readProductList(PageRequest.of(page, size));
     }

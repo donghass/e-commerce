@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import kr.hhplus.be.server.application.point.ChargePointCommand;
-import kr.hhplus.be.server.application.point.PointDto;
+import kr.hhplus.be.server.application.point.PointResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.point.PointEntity;
@@ -45,7 +45,7 @@ public class PointTest {
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(mockPointEntity));
 
         // Act
-        PointDto result = pointService.readPoint(userId);
+        PointResult result = pointService.readPoint(userId);
 
         // Assert
         assertThat(result).isNotNull();
@@ -66,13 +66,13 @@ public class PointTest {
         mockPointEntity.setBalance(1000L);
 
         // chargeAmount 만큼 충전될 것임
-        PointDto expectedPointDto = new PointDto(userId, 1500L);  // 1000 + 500
+        PointResult expectedPointDto = new PointResult(userId, 1500L);  // 1000 + 500
 
         // repository가 반환할 mock 설정
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(mockPointEntity));
 
         // Act
-        PointDto result = pointService.chargePoint(new ChargePointCommand(userId, chargeAmount));
+        PointResult result = pointService.chargePoint(new ChargePointCommand(userId, chargeAmount));
 
         // Assert
         assertThat(result).isNotNull();

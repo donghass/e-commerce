@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
-import kr.hhplus.be.server.application.product.ProductDto;
+import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
 import kr.hhplus.be.server.infra.product.ProductQueryDto;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class ProductService {
     private final ProductRepository productRepository;
     // 상품 리스트 조회
-    public Page<ProductDto> readProductList(Pageable pageable) {
+    public Page<ProductResult> readProductList(Pageable pageable) {
         Page<ProductQueryDto> product = productRepository.findPagedProducts(pageable);
 
         // 엔티티를 DTO로 변환
@@ -30,7 +30,7 @@ public class ProductService {
 //                productDto.getPrice(),
 //                productDto.getStock()))
 //            .collect(Collectors.toList());
-        return product.map(p -> new ProductDto(
+        return product.map(p -> new ProductResult(
             p.getId(),
             p.getName(),
             p.getPrice(),

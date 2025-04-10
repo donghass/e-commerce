@@ -1,8 +1,7 @@
 package kr.hhplus.be.server.api.point;
 
-import kr.hhplus.be.server.application.point.ChargePointCommand;
 import kr.hhplus.be.server.common.response.CommonResponse;
-import kr.hhplus.be.server.application.point.PointDto;
+import kr.hhplus.be.server.application.point.PointResult;
 import kr.hhplus.be.server.application.point.PointFacade;
 import kr.hhplus.be.server.common.response.ResponseCode;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,7 @@ public class PointController implements PointControllerDocs {
 //            .userId(pointDto.userId())
 //            .balance(pointDto.balance())
 //            .build();
-        PointDto dto = pointFacade.chargePoint(request.toCommand());
+        PointResult dto = pointFacade.chargePoint(request.toCommand());
         CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, PointResponse.from(dto));
 
         return ResponseEntity.ok(response);
@@ -43,7 +42,7 @@ public class PointController implements PointControllerDocs {
     @GetMapping("/userId={userId}")
     public ResponseEntity<CommonResponse<PointResponse>> getPoint(@PathVariable Long userId) {
 
-        PointDto pointDto = pointFacade.readPoint(userId);
+        PointResult pointResult = pointFacade.readPoint(userId);
 
         // DTO → Response 객체로 변환  // 반환 값이 많지 않으므로 record 사용
 //        PointResponse point = PointResponse.builder()
@@ -52,7 +51,7 @@ public class PointController implements PointControllerDocs {
 //            .build();
 //
 //        CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, point);
-        CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, PointResponse.from(pointDto));
+        CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, PointResponse.from(pointResult));
 
         return ResponseEntity.ok(response);
     }
