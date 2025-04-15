@@ -29,4 +29,9 @@ public class CouponRepositoryImpl implements CouponRepository {
     public void updateCouponStock(Long couponId, Long toStock) {
         queryFactory.update(coupon).set(coupon.stock,toStock).where(coupon.id.eq(couponId)).execute();
     }
+
+    @Override
+    public void save(CouponEntity coupon) {
+
+    }
 }

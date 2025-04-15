@@ -10,4 +10,6 @@ public interface CouponRepository {
     Optional<CouponEntity> findByCouponId(Long couponId);
 
     void updateCouponStock(Long couponId, Long toStock);
+
+    void save(CouponEntity coupon);
 }

@@ -28,9 +28,6 @@ public class CouponService {
         // 쿠폰 검증
         userCoupon.validateCoupon(userCoupon);
 
-        // 쿠폰 적용 처리 (사용 처리)
-        // userCoupon.used = true; // 쿠폰 사용처리는 결제에서 진행
-
         // 할인 금액, 할인 타입 반환
         return new CouponDiscountResult(coupon.getDiscountValue(),coupon.getDiscountType());
     }
@@ -41,18 +38,13 @@ public class CouponService {
         CouponEntity coupon = couponRepository.findByCouponId(command.couponId())
             .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 
-        // 잔여 수량 없으면 실패
-        if(coupon.getStock() <= 0){
-            throw new BusinessException(CouponErrorCode.COUPON_OUT_OF_STOCK);
-        }
+        coupon.couponUpdate();
 
         // userCoupon 테이블에서 조회하여 있으면 실패
         userCouponRepository.findByCouponId(command.couponId())
             .ifPresent(c -> { throw new BusinessException(CouponErrorCode.COUPON_ALREADY_ISSUED); });
 
-        // 쿠폰 갯수 차감
-        Long toStock = coupon.getStock() - 1;
-        couponRepository.updateCouponStock(command.couponId(),toStock);
+        couponRepository.save(coupon);
 
         // 사용자 쿠폰 저장
         UserCouponEntity userCoupon = UserCouponEntity.save(command.userId(),coupon.getName(),coupon.getId(),LocalDateTime.now().plusDays(7));

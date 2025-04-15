@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,6 +42,15 @@ public class CouponEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    public void couponUpdate() {
+        // 잔여 수량 없으면 실패
+        if(this.stock <= 0){
+            throw new BusinessException(CouponErrorCode.COUPON_OUT_OF_STOCK);
+        }
+        // 쿠폰 갯수 차감
+        this.stock -= 1;
+    }
 
 
     public enum DiscountType {

@@ -27,12 +27,7 @@ public class OrderService {
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
     public Long createOrder(OrderCommand command, Long amount, CouponDiscountResult discount) {
-        Long totalAmount =0L;  // 총 할인가
-        if(discount.discountType().name().equals("RATE")){
-            totalAmount = amount - (amount*discount.discountValue()/100);
-        }else if(discount.discountType().name().equals("AMOUNT")){
-            totalAmount = amount- discount.discountValue();
-        }
+        Long totalAmount = DiscountPolicy.discount(amount, discount);  // 총 할인가
 
         // 도메인 객체 생성
         OrderEntity order = OrderEntity.create(command.userId(), command.userCouponId(), totalAmount);
@@ -46,8 +41,7 @@ public class OrderService {
 
             product.updateStock(command.orderItem().get(i).quantity());
 
-            Long productAmount = 0l;
-            Long orderProductAmount = productAmount * command.orderItem().get(i).quantity();;
+            Long orderProductAmount =  product.orderProductAmount(product.getPrice(),command.orderItem().get(i).quantity());
 
             // 도메인 객체 생성
             OrderProductEntity orderProduct = OrderProductEntity.create(command.orderItem().get(i).productId(),

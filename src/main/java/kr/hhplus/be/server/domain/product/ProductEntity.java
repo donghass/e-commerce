@@ -11,11 +11,9 @@ import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
 
 @Table(name="product")
 @Getter
@@ -46,5 +44,9 @@ public class ProductEntity {
         }
         // 재고 차감
         this.stock -= quantity;
+    }
+
+    public Long orderProductAmount(Long price, Long quantity) {
+        return price * quantity;
     }
 }
