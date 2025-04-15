@@ -1,7 +1,5 @@
 package kr.hhplus.be.server.application.order;
 
-import kr.hhplus.be.server.api.order.OrderRequest.OrderItem;
-import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderService;
@@ -17,8 +15,6 @@ public class OrderFacade {
     private final CouponService couponService;
 
 
-
-    // 주문
     public OrderResult createOrder(OrderCommand command) {
         // 주문 상품으로 주문총액 조회
         Long totalAmount = productService.readOrderProduct(command.orderItem());
@@ -26,6 +22,7 @@ public class OrderFacade {
         CouponDiscountResult discount = couponService.useCoupon(command.userCouponId());
         // 주문 생성
         Long orderId = orderService.createOrder(command,totalAmount,discount);
+
         return new OrderResult(orderId);
     }
 

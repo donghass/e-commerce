@@ -13,23 +13,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-    // 상품 리스트 조회
+
+    
     public Page<ProductResult> readProductList(Pageable pageable) {
         Page<ProductQueryDto> product = productRepository.findPagedProducts(pageable);
 
-        // 엔티티를 DTO로 변환
-//        return product.stream()
-//            .map(productDto -> new ProductDto(
-//                productDto.getId(),
-//                productDto.getName(),
-//                productDto.getPrice(),
-//                productDto.getStock()))
-//            .collect(Collectors.toList());
+
         return product.map(p -> new ProductResult(
             p.getId(),
             p.getName(),
@@ -38,28 +33,25 @@ public class ProductService {
         ));
     }
 
+    @Transactional
     public Long readOrderProduct(List<OrderProduct> orderProduct){
         Long totalAmount = 0L;
+
         for(int i = 0; i < orderProduct.size(); i++){
             Long productId = orderProduct.get(i).productId();
             Long quantity = orderProduct.get(i).quantity();
-            Long updateQuantity;
 
             // 재고 조회 로직 (예시)
             ProductEntity product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 
-            Long currentStock = product.getStock();
-            if (quantity > currentStock) {
-                throw new BusinessException(ProductErrorCode.INVALID_QUANTITY);
-            }
-            // 재고 차감
-            updateQuantity = currentStock - quantity;
-            productRepository.updateStock(productId, updateQuantity);
+            // jpa 쓰면 더티체킹 해서 안써도 되긴하지만! 쓰는게 mybatis 같은 orm 교체시 해줘야하잖아요?
+            // 그래서 저는 이렇게 save해주는게 맏가 생각해요 ㅎ
+            productRepository.save(product);
 
             totalAmount += product.getPrice() * quantity;
         }
-        // 주문 총액
+
         return totalAmount;
     }
 }

@@ -14,10 +14,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
-
     private final JpaProductRepository jpaProductRepository;
     private final JPAQueryFactory queryFactory; //복잡한 조건, 일부 필드만 조회, 최적화가 필요할 때
 
+    @Override
+    public void save(ProductEntity product) {
+        jpaProductRepository.save(product);
+    }
 
     @Override
     public Page<ProductQueryDto> findPagedProducts(Pageable pageable) {
