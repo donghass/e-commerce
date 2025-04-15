@@ -7,14 +7,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
 
 
 @Table(name="coupon")
-@Data
-@DynamicUpdate // 실제 변경한 컬럼만 업데이트
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
+@AllArgsConstructor // 모든 필드 생성자
 @Entity
 public class CouponEntity {
     @Id
@@ -42,6 +45,15 @@ public class CouponEntity {
     public enum DiscountType {
         RATE,       // 정률
         AMOUNT      // 정액
+    }
+
+    public static CouponEntity save(String name, Long discountValue, DiscountType discountType, Long stock) {
+        CouponEntity coupon = new CouponEntity();
+        coupon.name = name;
+        coupon.discountValue = discountValue;
+        coupon.discountType = discountType;
+        coupon.stock = stock;
+        return coupon;
     }
 }
 

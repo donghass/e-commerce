@@ -15,6 +15,7 @@ import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
 import kr.hhplus.be.server.domain.coupon.CouponEntity.DiscountType;
 import kr.hhplus.be.server.domain.order.OrderEntity;
+import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.OrderService;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
 @ExtendWith(MockitoExtension.class) // 필수
 public class OrderTest {
         @Mock
@@ -38,12 +41,14 @@ public class OrderTest {
         Long couponId = 100L;
         Long amount = 10000L; // 원래 금액
         int discountRate = 20; // 20% 할인
+        Long totalAmount = 8000L;
 
         OrderCommand command = new OrderCommand(userId, couponId, List.of());
         CouponDiscountResult discount = new CouponDiscountResult((long) discountRate, DiscountType.RATE);
 
-        OrderEntity savedOrder = new OrderEntity();
-        savedOrder.setId(123L); // 임의의 저장 결과 ID
+
+        OrderEntity savedOrder = OrderEntity.create(userId, couponId, totalAmount);
+        ReflectionTestUtils.setField(savedOrder, "id", 123L); // 또는 생성자에 id 포함
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
 
         // Act  실행
@@ -67,19 +72,22 @@ public class OrderTest {
         Long couponId = 200L;
         Long amount = 10000L; // 원래 금액
         Long discountAmount = 3000L;
+        Long totalAmount = 7000L;
 
         OrderCommand command = new OrderCommand(userId, couponId, List.of());
         CouponDiscountResult discount = new CouponDiscountResult(discountAmount, DiscountType.AMOUNT);
 
-        OrderEntity savedOrder = new OrderEntity();
-        savedOrder.setId(456L);
+
+        OrderEntity savedOrder = OrderEntity.create(userId, couponId, totalAmount);
+        ReflectionTestUtils.setField(savedOrder, "id", 123L); // 또는 생성자에 id 포함
+
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
 
         // Act
         Long result = orderService.createOrder(command, amount, discount);
 
         // Assert
-        assertThat(result).isEqualTo(456L);
+        assertThat(result).isEqualTo(123L);
         ArgumentCaptor<OrderEntity> captor = ArgumentCaptor.forClass(OrderEntity.class);
         verify(orderRepository).save(captor.capture());
 
@@ -93,10 +101,12 @@ public class OrderTest {
     void readOrder_success() {
         // Arrange
         Long orderId = 123L;
-        OrderEntity mockOrder = new OrderEntity();
-        mockOrder.setId(orderId);
-        mockOrder.setUserId(1L);
-        mockOrder.setTotalAmount(8000L);
+        Long userId = 1L;
+        Long couponId = 200L;
+        Long totalAmount = 7000L;
+
+        OrderEntity mockOrder = OrderEntity.create(userId, couponId, totalAmount);
+        ReflectionTestUtils.setField(mockOrder, "id", 123L); // 또는 생성자에 id 포함
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));
 
@@ -107,7 +117,7 @@ public class OrderTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(orderId);
         assertThat(result.getUserId()).isEqualTo(1L);
-        assertThat(result.getTotalAmount()).isEqualTo(8000L);
+        assertThat(result.getTotalAmount()).isEqualTo(7000L);
 
         verify(orderRepository).findById(orderId);
     }
@@ -128,12 +138,12 @@ public class OrderTest {
     void updateOrderStatus() {
         // Arrange
         Long orderId = 1L;
-        doNothing().when(orderRepository).updateOrderStatus(orderId);
+        doNothing().when(orderRepository).updateOrderStatus(orderId, PaymentStatus.PAID);
 
         // Act
         orderService.updateOrderStatus(orderId);
 
         // Assert
-        verify(orderRepository, times(1)).updateOrderStatus(orderId);
+        verify(orderRepository, times(1)).updateOrderStatus(orderId, PaymentStatus.PAID);
     }
 }

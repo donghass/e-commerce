@@ -2,6 +2,7 @@ package kr.hhplus.be.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -45,17 +46,15 @@ public class CouponTest {
         // Arrange
         Long userCouponId = 1L;
         Long couponId = 123L;
-
+        Long userId = 1L;
+        String name = "가입축하 쿠폰";
+        LocalDateTime expiredAt = LocalDateTime.now().plusDays(7);
         // Mock UserCouponEntity
-        UserCouponEntity mockUserCoupon = new UserCouponEntity();
-        mockUserCoupon.setCouponId(couponId);
-        mockUserCoupon.setExpiredAt(LocalDateTime.now().plusDays(7));  // 만료일을 7일 뒤로 설정
+        UserCouponEntity mockUserCoupon = new UserCouponEntity(userId, userId, couponId, false, name,null,expiredAt,LocalDateTime.now(),LocalDateTime.now());  // 만료일을 7일 뒤로 설정
 
         // Mock CouponEntity
-        CouponEntity mockCoupon = new CouponEntity();
-        mockCoupon.setId(couponId);
-        mockCoupon.setDiscountValue(20L); // 20% 할인
-        mockCoupon.setDiscountType(DiscountType.RATE); // 정률 할인
+        CouponEntity mockCoupon = new CouponEntity(1L,name,20L,DiscountType.RATE,null,null,5L,null,null);
+
 
         // Mocking repository calls
         when(userCouponRepository.findById(userCouponId)).thenReturn(Optional.of(mockUserCoupon));
@@ -81,10 +80,8 @@ public class CouponTest {
         Long userId = 1L;
         Long couponId = 123L;
 
-        CouponEntity mockCoupon = new CouponEntity();
-        mockCoupon.setId(couponId);
-        mockCoupon.setStock(10L);
-        mockCoupon.setName("Discount Coupon");
+        // Mock CouponEntity
+        CouponEntity mockCoupon = new CouponEntity(couponId,"할인쿠폰",20L,DiscountType.RATE,null,null,10L,null,null);
 
         CouponIssueCommand command = new CouponIssueCommand(userId, couponId);
 
@@ -106,14 +103,23 @@ public class CouponTest {
 
 
     @Test
-    void validateCoupon_success() {
+    void validateCoupon_fail() {
         // Arrange
-        UserCouponEntity userCouponEntity = new UserCouponEntity();
-        userCouponEntity.setExpiredAt(LocalDateTime.now());
-        userCouponEntity.setUsed(true);
+        // Mock UserCouponEntity
+        UserCouponEntity mockUserCoupon = new UserCouponEntity(1L, 1L, 1L, true, "할인쿠폰",null,LocalDateTime.now().plusDays(7),LocalDateTime.now(),LocalDateTime.now());  // 만료일을 7일 뒤로 설정
 
 
         // Act & Assert
-        assertThrows(BusinessException.class, () -> userCouponEntity.validateCoupon(userCouponEntity));
+        assertThrows(BusinessException.class, () -> mockUserCoupon.validateCoupon(mockUserCoupon));
+    }
+    @Test
+    void validateCoupon_success() {
+        // Arrange
+        // Mock UserCouponEntity
+        UserCouponEntity mockUserCoupon = new UserCouponEntity(1L, 1L, 1L, false, "할인쿠폰",null,LocalDateTime.now().plusDays(7),LocalDateTime.now(),LocalDateTime.now());  // 만료일을 7일 뒤로 설정
+
+
+        // Act & Assert
+        assertDoesNotThrow(() -> mockUserCoupon.validateCoupon(mockUserCoupon));
     }
 }

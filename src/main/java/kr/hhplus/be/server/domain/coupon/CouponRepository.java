@@ -2,7 +2,9 @@ package kr.hhplus.be.server.domain.coupon;
 
 
 import java.util.Optional;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface CouponRepository {
 
     Optional<CouponEntity> findByCouponId(Long couponId);

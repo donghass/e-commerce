@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
@@ -12,7 +13,6 @@ import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.ProductService;
-import kr.hhplus.be.server.infra.product.ProductQueryDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,12 +39,13 @@ class ProductTest {
         int size = 5;
         Pageable pageable = PageRequest.of(page, size);
 
-        List<ProductQueryDto> content = List.of(
-            new ProductQueryDto(1L, "상품A", 1000L, 10L),
-            new ProductQueryDto(2L, "상품B", 2000L, 5L)
+        List<ProductEntity> content = List.of(
+            new ProductEntity(1L, "상품A", "설명", 1000L,10L,null,null),
+            new ProductEntity(2L, "상품B", "설명", 5000L,5L,null,null)
         );
 
-        Page<ProductQueryDto> queryDtoPage = new PageImpl<>(content, pageable, content.size());
+        Page<ProductEntity> queryDtoPage = new PageImpl<>(content, pageable, content.size());
+        when(productRepository.findPagedProducts(pageable)).thenReturn(queryDtoPage);
 
         // Act
         Page<ProductResult> result = productService.readProductList(PageRequest.of(page, size));
@@ -58,12 +59,12 @@ class ProductTest {
             .extracting(ProductResult::name, ProductResult::price)
             .containsExactly(
                 tuple("상품A", 1000L),
-                tuple("상품B", 2000L)
+                tuple("상품B", 5000L)
             );
     }
 
     @Test
-    void readOrder_정상_총합계계산_성공() {
+    void readOrderProduct() {
         // Arrange
         List<OrderProduct> orderList = List.of(
             new OrderProduct(1L, 2L), // 상품A: 2개
@@ -71,19 +72,10 @@ class ProductTest {
         );
 
         // 상품A
-        ProductEntity productA = new ProductEntity();
-        productA.setId(1L);
-        productA.setName("상품A");
-        productA.setPrice(1000L);
-        productA.setStock(10L);
+        ProductEntity productA = new ProductEntity(1L,"상품A","옷",1000L,10L, LocalDateTime.now(),LocalDateTime.now());
 
         // 상품B
-        ProductEntity productB = new ProductEntity();
-        productB.setId(2L);
-        productB.setName("상품B");
-        productB.setPrice(2000L);
-        productB.setStock(5L);
-
+        ProductEntity productB = new ProductEntity(2L,"상품B","무기",1000L,5L, LocalDateTime.now(),LocalDateTime.now());
         // Mock 설정
         when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
         when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
@@ -92,7 +84,7 @@ class ProductTest {
         Long result = productService.readOrderProduct(orderList);
 
         // Assert
-        assertThat(result).isEqualTo(2000L + 2000L); // 2*1000 + 1*2000 = 4000
+        assertThat(result).isEqualTo(2000L + 1000L); // 2*1000 + 1*2000 = 4000
         verify(productRepository).updateStock(1L, 8L); // 10 - 2
         verify(productRepository).updateStock(2L, 4L); // 5 - 1
     }

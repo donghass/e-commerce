@@ -1,11 +1,11 @@
-package kr.hhplus.be.server.infra.product;
+package kr.hhplus.be.server.infra.coupon;
 
-import java.util.Optional;
+import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface JpaProductRepository extends JpaRepository<ProductEntity, Long> {
+public interface JpaCouponRepository extends JpaRepository<CouponEntity, Long> {
 
 }

@@ -1,18 +1,20 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CouponService {
+    @Autowired
     private final CouponRepository couponRepository;
+    @Autowired
     private final UserCouponRepository userCouponRepository;
 // 쿠폰 사용
     public CouponDiscountResult useCoupon(Long userCouponId) {
@@ -53,12 +55,9 @@ public class CouponService {
         couponRepository.updateCouponStock(command.couponId(),toStock);
 
         // 사용자 쿠폰 저장
-        UserCouponEntity userCoupon = new UserCouponEntity();
-        userCoupon.setUserId(command.userId());
-        userCoupon.setName(coupon.getName());
-        userCoupon.setCouponId(coupon.getId());
-        userCoupon.setExpiredAt(LocalDateTime.now().plusDays(7));
-        userCouponRepository.saveCoupon(userCoupon);
+        UserCouponEntity userCoupon = UserCouponEntity.save(command.userId(),coupon.getName(),coupon.getId(),LocalDateTime.now().plusDays(7));
+
+        userCouponRepository.save(userCoupon);
     }
 
 }

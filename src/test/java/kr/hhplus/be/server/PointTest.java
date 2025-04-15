@@ -15,6 +15,7 @@ import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.point.PointEntity;
 import kr.hhplus.be.server.domain.point.PointHistoryEntity;
+import kr.hhplus.be.server.domain.point.PointHistoryEntity.Type;
 import kr.hhplus.be.server.domain.point.PointHistoryRepository;
 import kr.hhplus.be.server.domain.point.PointRepository;
 import kr.hhplus.be.server.domain.point.PointService;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,9 +40,8 @@ public class PointTest {
     void readPoint() {
         // Arrange
         Long userId = 1L;
-        PointEntity mockPointEntity = new PointEntity();
-        mockPointEntity.setUserId(userId);
-        mockPointEntity.setBalance(1000L);
+
+        PointEntity mockPointEntity = PointEntity.save( userId, 1000L); // 생성자 또는 팩토리로 가정
 
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(mockPointEntity));
 
@@ -61,9 +62,7 @@ public class PointTest {
         Long chargeAmount = 500L;
 
         // mock PointEntity 설정
-        PointEntity mockPointEntity = new PointEntity();
-        mockPointEntity.setUserId(userId);
-        mockPointEntity.setBalance(1000L);
+        PointEntity mockPointEntity = PointEntity.save(userId, 1000L); // 생성자 또는 팩토리로 가정
 
         // chargeAmount 만큼 충전될 것임
         PointResult expectedPointDto = new PointResult(userId, 1500L);  // 1000 + 500
@@ -107,23 +106,22 @@ public class PointTest {
         Long userBalance = 2000L;  // 사용자의 현재 포인트
         Long orderTotalAmount = 1000L;  // 주문 금액
 
-        OrderEntity mockOrder = new OrderEntity();
-        mockOrder.setUserId(userId);
-        mockOrder.setTotalAmount(orderTotalAmount);
+        Long couponId = 200L;
 
-        PointEntity mockPointEntity = new PointEntity();
-        mockPointEntity.setId(1L);
-        mockPointEntity.setUserId(userId);
-        mockPointEntity.setBalance(userBalance);
+
+        OrderEntity mockOrder = OrderEntity.create(userId, couponId, orderTotalAmount);
+
+
+
+        PointEntity mockPointEntity = PointEntity.save(userId, 1000L); // 팩토리
 
         // 포인트 사용 후 잔액 계산: 2000 - 1000 = 1000
         Long remainingBalance = userBalance - orderTotalAmount;
 
         // PointHistoryEntity 설정
-        PointHistoryEntity mockPointHistory = new PointHistoryEntity();
-        mockPointHistory.setPointId(mockPointEntity.getId());
-        mockPointHistory.setBalance(remainingBalance);
-        mockPointHistory.setAmount(orderTotalAmount);
+        PointHistoryEntity mockPointHistory = PointHistoryEntity.save(userId, userBalance,orderTotalAmount,
+            Type.USE); // 팩토리
+
 
         // mock 설정
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(mockPointEntity));
@@ -140,29 +138,48 @@ public class PointTest {
     }
 
     @Test
-    void charge() {
+    void chargePoint() {
         // Arrange
-        PointEntity pointEntity = new PointEntity();
-        pointEntity.setBalance(1000L);  // 기존 잔액 설정
+        Long userId = 1L;
+        Long chargeAmount = 5000L;
+        Long beforeBalance = 10000L;
+        Long afterBalance = beforeBalance + chargeAmount;
 
-        Long chargeAmount = 500L;  // 충전할 금액
+        PointEntity mockPointEntity = PointEntity.save(userId, beforeBalance); // 포인트 팩토리
+        PointHistoryEntity mockPointHistory = PointHistoryEntity.save(userId, beforeBalance,chargeAmount,
+            Type.CHARGE); // 포인트 히스토리 팩토리
+
+        // Stub: 포인트 조회
+        Mockito.when(pointRepository.findByUserId(userId))
+            .thenReturn(Optional.of(mockPointEntity));
+        // Stub: 포인트 저장은 내부에서 자동 처리되므로 charge 메서드만 검증
+        doNothing().when(pointRepository).charge(userId, afterBalance);
+        // Stub: 포인트 히스토리 저장
+        doNothing().when(pointHistoryRepository).save(any(PointHistoryEntity.class));
 
         // Act
-        pointEntity.charge(chargeAmount);
+        PointResult result = pointService.chargePoint(new ChargePointCommand(userId, chargeAmount));
 
-        // Assert
-        assertThat(pointEntity.getBalance()).isEqualTo(1500L);  // 1000 + 500 = 1500
+        // Assert (AssertJ)
+        assertThat(result)
+            .extracting(PointResult::userId, PointResult::balance)
+            .containsExactly(userId, afterBalance);
+
+        Mockito.verify(pointRepository).charge(userId, afterBalance);
+        Mockito.verify(pointHistoryRepository).save(any(PointHistoryEntity.class));
+
     }
 
     @Test // 충전한도 초과
     void charge_fail() {
         // Arrange
-        PointEntity pointEntity = new PointEntity();
-        pointEntity.setBalance(4500000L);  // 기존 잔액 설정 (4500000L)
+        Long userId = 1L;
+        Long beforeBalance = 4500000L;
+        PointEntity mockPointEntity = PointEntity.save(userId, beforeBalance); // 팩토리
 
         Long chargeAmount = 600000L;  // 충전할 금액 (총액이 5000000을 초과)
 
         // Act & Assert
-        assertThrows(BusinessException.class, () -> pointEntity.charge(chargeAmount));
+        assertThrows(BusinessException.class, () -> mockPointEntity.charge(chargeAmount));
     }
 }

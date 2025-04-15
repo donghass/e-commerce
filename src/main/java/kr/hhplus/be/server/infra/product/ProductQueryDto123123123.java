@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductQueryDto {
+public class ProductQueryDto123123123 {
     private Long id;
     private String name;
     private Long price;

@@ -9,23 +9,23 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import kr.hhplus.be.server.common.exception.BusinessException;
-import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
 
 @Table(name="pointHistory")
-@Data
-@DynamicUpdate // 실제 변경한 컬럼만 업데이트
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
+@AllArgsConstructor // 모든 필드 생성자
 @Entity
 public class PointHistoryEntity {
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY) //pk의 sequential 값을 자동 증가
         private Long id;
-        @OneToOne   // 1:1 관계에 외래키
-        @JoinColumn(name = "pointId", nullable = false, unique = true)
+        @Column(name = "pointId", nullable = false, unique = true)
         private Long pointId;
         @Column(nullable = false, name = "amount")
         private Long amount;
@@ -44,4 +44,13 @@ public class PointHistoryEntity {
         USE,      // 사용
         CHARGE      // 충전
     }
+        // 포인트 사용, 충전 팩토리
+        public static PointHistoryEntity save(Long pointId,Long amount, Long balance,Type type) {
+                PointHistoryEntity pointHistory = new PointHistoryEntity();
+                pointHistory.pointId = pointId;
+                pointHistory.amount = amount;
+                pointHistory.balance = balance;
+                pointHistory.type = type;
+                return pointHistory;
+        }
 }

@@ -5,27 +5,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.Data;
+import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
 
 
-@Table(name="order")
-@Data
-@DynamicUpdate // 실제 변경한 컬럼만 업데이트
+@Table(name="orders")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
+@AllArgsConstructor // 모든 필드 생성자
 @Entity
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) //pk의 sequential 값을 자동 증가
     private Long id;
-    @OneToOne   // 1:1 관계에 외래키
-    @JoinColumn(nullable = false, name = "userId", unique = true)
+    @Column(nullable = false, name = "userId")
     private Long userId;
-    @Column(nullable = false, name = "userCouponId")
+    @Column(nullable = true, name = "userCouponId")
     private Long userCouponId;
     //@Column(nullable = false, name = "isCouponApplied")   userCoupon에서 쿠폰사용여부 값 있고 order에 쿠폰 사용일 경우에만 userCouponId 들어오기 떄문에 필요 없다
     //private Long isCouponApplied;
@@ -40,10 +41,20 @@ public class OrderEntity {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
 
+
+
     public enum PaymentStatus {
         NOT_PAID,      // 미결제
         PAID,      // 결제
         EXPIRED     // 주문 시간 만료
+    }
+
+    public static OrderEntity create(Long userId, Long userCouponId, Long totalAmount) {
+        OrderEntity order = new OrderEntity();
+        order.userId = userId;
+        order.userCouponId = userCouponId;
+        order.totalAmount = totalAmount;
+        return order;
     }
 }
 

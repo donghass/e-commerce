@@ -7,13 +7,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
 
 @Table(name="orderProduct")
-@Data
-@DynamicUpdate // 실제 변경한 컬럼만 업데이트
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA용 기본 생성자
+@AllArgsConstructor // 모든 필드 생성자
 @Entity
 public class OrderProductEntity {
     @Id
@@ -32,4 +35,13 @@ public class OrderProductEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    public static OrderProductEntity create(Long productId, Long ordersId, Long amount, Long quantity) {
+        OrderProductEntity orderItem = new OrderProductEntity();
+        orderItem.productId = productId;
+        orderItem.ordersId = ordersId;
+        orderItem.amount = amount;
+        orderItem.quantity = quantity;
+        return orderItem;
+    }
 }
