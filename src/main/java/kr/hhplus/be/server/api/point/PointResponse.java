@@ -1,16 +1,11 @@
 package kr.hhplus.be.server.api.point;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import kr.hhplus.be.server.application.point.PointResult;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class PointResponse<T> {
-        private Long userId;
-        private Long balance;
+public record PointResponse(Long userId, Long balance) {
+
+        public static PointResponse from(PointResult dto) {
+                return new PointResponse(dto.userId(), dto.balance());
+        }
 
 }

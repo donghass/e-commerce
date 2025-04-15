@@ -10,9 +10,10 @@ import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import kr.hhplus.be.server.api.CommonResponse;
-import kr.hhplus.be.server.api.bestSeller.BestSellerProductResponse;
+import kr.hhplus.be.server.common.response.CommonResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "[상품]", description = "상품 관련 API 입니다.")
 public interface ProductControllerDocs {
@@ -55,6 +56,7 @@ public interface ProductControllerDocs {
             )
         }
     )
-    ResponseEntity<CommonResponse<List<ProductListResponse>>> getProductList();
+    ResponseEntity<CommonResponse<Page<ProductListResponse>>> getProductList(@RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size);
 
 }

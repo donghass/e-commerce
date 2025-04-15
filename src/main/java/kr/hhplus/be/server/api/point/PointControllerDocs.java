@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.hhplus.be.server.api.CommonResponse;
+import kr.hhplus.be.server.common.response.CommonResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,7 +54,7 @@ public interface PointControllerDocs {
             )
         }
     )
-    public ResponseEntity<PointResponse> getPoint(@PathVariable Long userId);
+    public ResponseEntity<CommonResponse<PointResponse>> getPoint(@PathVariable Long userId);
 
     @Operation(
         summary = "포인트 충전 API",

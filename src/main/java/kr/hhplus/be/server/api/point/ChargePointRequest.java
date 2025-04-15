@@ -1,11 +1,13 @@
 package kr.hhplus.be.server.api.point;
 
+import kr.hhplus.be.server.application.point.ChargePointCommand;
 import lombok.Getter;
 
-@Getter
-public class ChargePointRequest {
-    private Long userId;
-    private Long amount;
+public record ChargePointRequest(Long userId, Long amount) {
+
+    public ChargePointCommand toCommand() {
+        return new ChargePointCommand(userId, amount);
+    }
 }
 
 

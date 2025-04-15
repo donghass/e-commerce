@@ -1,17 +1,11 @@
 package kr.hhplus.be.server.api.product;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import kr.hhplus.be.server.application.product.ProductResult;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProductListResponse {
-    private int id;
-    private String name;
-    private long price;
-    private int stock;
+public record ProductListResponse(Long id, String name, Long price, Long stock) {
+//  리스트로 받기
+// 단일 DTO 변환 (페이징용)
+    public static ProductListResponse from(ProductResult dto) {
+        return new ProductListResponse(dto.id(), dto.name(), dto.price(), dto.stock());
+    }
 }
