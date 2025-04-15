@@ -32,23 +32,21 @@ public class OrderService {
             totalAmount = amount- discount.discountValue();
         }
 
-        OrderEntity order = new OrderEntity();
-        order.setUserId(command.userId());
-        order.setTotalAmount(totalAmount);
-        order.setUserCouponId(command.userCouponId());
-
-        OrderEntity saved = orderRepository.save(order);
+        OrderEntity saved = orderRepository.save(OrderEntity.create(command.userId(), totalAmount, command.userCouponId()));
 
         return saved.getId();
     }
-// 주문 조회
+
     public OrderEntity readOrder(Long orderId){
-        return orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(
-            OrderErrorCode.ORDER_NOT_FOUND));
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
     }
 
     public void updateOrderStatus(Long orderId){
-        orderRepository.updateOrderStatus(orderId);
+        OrderEntity orderEntity = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        orderEntity.updateOrderStatus(PaymentStatus.PAID); // 알아서 바꿔주세용
+        orderRepository.save(orderEntity);
     }
 
     // 5분 주기로 주문 생성 5분 지난 주문건 취소 스케줄러

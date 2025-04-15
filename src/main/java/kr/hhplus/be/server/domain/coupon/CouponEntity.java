@@ -7,15 +7,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.Data;
+
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 
-
-@Table(name="coupon")
-@Data
-@DynamicUpdate // 실제 변경한 컬럼만 업데이트
 @Entity
+@Getter
+@Builder
+@Table(name="coupon")
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CouponEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) //pk의 sequential 값을 자동 증가
@@ -46,10 +48,8 @@ public class CouponEntity {
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-
     public enum DiscountType {
         RATE,       // 정률
         AMOUNT      // 정액
     }
 }
-

@@ -9,22 +9,24 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.Data;
+
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.UpdateTimestamp;
 
 
-@Table(name="order")
-@Data
-@DynamicUpdate // 실제 변경한 컬럼만 업데이트
+@Getter
 @Entity
+@Builder
+@Table(name="order")
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) //pk의 sequential 값을 자동 증가
     private Long id;
 
-    @OneToOne   // 1:1 관계에 외래키
-    @JoinColumn(nullable = false, name = "userId", unique = true)
     private Long userId;
 
     @Column(nullable = false, name = "userCouponId")
@@ -33,16 +35,30 @@ public class OrderEntity {
     @Column(nullable = false, name = "totalAmount")
     private Long totalAmount;
 
+    @Builder.Default
     @Column(nullable = false, name = "status")
     private PaymentStatus status = PaymentStatus.NOT_PAID;
 
     @Column(nullable = false, name = "createdAt")
     @CreationTimestamp
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @Column(nullable = false, name = "updatedAt")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
+    // 정적 팩토리 메서드 패턴을 통해 빌더를 이용해 객체를 생성
+    public static OrderEntity create(Long userId, Long totalAmount, Long userCouponId){
+        return OrderEntity.builder()
+                .userId(userId)
+                .userCouponId(userCouponId)
+                .totalAmount(totalAmount)
+                .build();
+    }
+
+    public void updateOrderStatus(PaymentStatus status){
+        this.status=status;
+    }
 
     public enum PaymentStatus {
         NOT_PAID,      // 미결제

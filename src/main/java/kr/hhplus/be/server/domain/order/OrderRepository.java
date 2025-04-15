@@ -8,8 +8,8 @@ import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository {
-// save하고 그대로 반환받기
-    <T> T save(OrderEntity order);
+
+    OrderEntity save(OrderEntity order);
 
     Optional<OrderEntity> findById(Long orderId);
 
