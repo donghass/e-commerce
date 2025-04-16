@@ -1,5 +1,6 @@
 package kr.hhplus.be.server;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,18 +41,23 @@ class SchedulerTest {
         Long productId = 100L;
         Long quantity = 2L;
         Long currentStock = 5L;
+        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
 
-        OrderEntity expiredOrder = new OrderEntity(orderId,1L,1L,1000L,PaymentStatus.EXPIRED,
-            LocalDateTime.now(),LocalDateTime.now());
-        ReflectionTestUtils.setField(expiredOrder, "id", 1L); // 👈 이게 핵심!
+        // 주문 엔티티 (만료 예정 상태)
+        OrderEntity expiredOrder = new OrderEntity(orderId, 1L, 1L, 1000L, PaymentStatus.EXPIRED,
+            LocalDateTime.now().minusMinutes(10), LocalDateTime.now());
 
-        OrderProductEntity orderProduct = new OrderProductEntity(1L,productId,1L,1000L,quantity,null,null);
+        ReflectionTestUtils.setField(expiredOrder, "id", orderId);
 
+        // 주문 상품
+        OrderProductEntity orderProduct = new OrderProductEntity(1L, productId, orderId, 1000L, quantity, null, null);
 
-        ProductEntity product = new ProductEntity(productId,"상품A","옷",1000L,currentStock, LocalDateTime.now(),LocalDateTime.now());
+        // 상품
+        ProductEntity product = new ProductEntity(productId, "상품A", "옷", 1000L, currentStock,
+            LocalDateTime.now(), LocalDateTime.now());
 
-
-
+        // Mock 설정
+        when(orderRepository.findNotPaidOrdersOlderThan(expiredTime)).thenReturn(List.of(expiredOrder));
         when(orderRepository.findByOrderId(orderId)).thenReturn(Optional.of(orderProduct));
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
@@ -59,7 +65,10 @@ class SchedulerTest {
         orderService.expireOldUnpaidOrders();
 
         // Then
-        verify(orderRepository).updateStatus(orderId, PaymentStatus.EXPIRED);
-        verify(productRepository).updateStock(productId, currentStock + quantity);
+        verify(orderRepository).updateOrderStatus(orderId, PaymentStatus.EXPIRED); // 상태 변경
+        verify(productRepository).save(any(ProductEntity.class)); // 재고 저장
+
+        // 재고가 5 → 7로 복구되었는지 확인
+        assertThat(product.getStock()).isEqualTo(currentStock + quantity);
     }
 }

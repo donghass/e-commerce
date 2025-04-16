@@ -2,7 +2,9 @@ package kr.hhplus.be.server.domain.product;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
+import kr.hhplus.be.server.application.product.BestSellerResult;
 import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
@@ -17,18 +19,12 @@ import org.springframework.stereotype.Service;
 public class ProductService {
     @Autowired
     private final ProductRepository productRepository;
+    @Autowired
+    private final BestSellerRepository bestSellerRepository;
     // 상품 리스트 조회
     public Page<ProductResult> readProductList(Pageable pageable) {
         Page<ProductEntity> product = productRepository.findPagedProducts(pageable);
 
-        // 엔티티를 DTO로 변환
-//        return product.stream()
-//            .map(productDto -> new ProductDto(
-//                productDto.getId(),
-//                productDto.getName(),
-//                productDto.getPrice(),
-//                productDto.getStock()))
-//            .collect(Collectors.toList());
         return product.map(p -> new ProductResult(
             p.getId(),
             p.getName(),
@@ -62,5 +58,21 @@ public class ProductService {
         }
         // 주문 총액
         return totalAmount;
+    }
+
+    public List<BestSellerResult> bestSellerList() {
+
+        List<BestSellerEntity> bestSeller = bestSellerRepository.findAll();
+
+
+        return bestSeller.stream()
+            .map(b -> new BestSellerResult(
+                b.getProductId(),
+                b.getName(),
+                b.getPrice(),
+                b.getStock(),
+                b.getSales()
+            ))
+            .collect(Collectors.toList());
     }
 }

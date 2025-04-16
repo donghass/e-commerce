@@ -64,7 +64,8 @@ public class OrderService {
     // 5분 주기로 주문 생성 5분 지난 주문건 취소 스케줄러
     @Transactional
     public void expireOldUnpaidOrders() {
-        List<OrderEntity> expiredOrders = orderRepository.findNotPaidOrdersOlderThan();
+        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
+        List<OrderEntity> expiredOrders = orderRepository.findNotPaidOrdersOlderThan(expiredTime);
 
         // 주문에서는 쿠폰 금액 차감만 하고 쿠폰 사용저리는 결제때 구현으로 변경
         // 주문상품 별 갯수 조회하여 상품 재고 원복
@@ -75,7 +76,7 @@ public class OrderService {
             ProductEntity product = productRepository.findById(orderProduct.get().getProductId())
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 
-            product.updateStock(orderProduct.get().getQuantity());
+            product.plusStock(orderProduct.get().getQuantity());
             productRepository.save(product);
         }
     }

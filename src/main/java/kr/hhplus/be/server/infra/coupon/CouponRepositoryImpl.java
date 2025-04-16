@@ -1,12 +1,15 @@
 package kr.hhplus.be.server.infra.coupon;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.QCouponEntity;
-import kr.hhplus.be.server.domain.order.QOrderEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -33,5 +36,32 @@ public class CouponRepositoryImpl implements CouponRepository {
     @Override
     public void save(CouponEntity coupon) {
 
+    }
+
+    @Override
+    public void saveAll(List<CouponEntity> dummyList) {
+
+    }
+
+    @Override
+    public Map<Object, Object> findAll() {
+        QCouponEntity coupon = QCouponEntity.couponEntity;
+
+        List<Tuple> results = queryFactory
+            .select(coupon.id, coupon.name)
+            .from(coupon)
+            .fetch();
+
+        return results.stream()
+            .collect(Collectors.toMap(
+                tuple -> tuple.get(coupon.id),
+                tuple -> tuple.get(coupon.name)
+            ));
+    }
+
+    @Override
+    public CouponEntity saveAndFlush(CouponEntity coupon) {
+
+        return coupon;
     }
 }

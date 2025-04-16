@@ -1,6 +1,9 @@
 package kr.hhplus.be.server.api.product;
 
 
+import java.util.List;
+import java.util.stream.Collectors;
+import kr.hhplus.be.server.application.product.BestSellerResult;
 import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.application.product.ProductFacade;
 import kr.hhplus.be.server.common.response.CommonResponse;
@@ -34,5 +37,17 @@ public class ProductController implements ProductControllerDocs {
 
         return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, responsePage));
 //      return ResponseEntity.ok(response);
+    }
+
+    // 인기 상품 5개 조회 API
+    @GetMapping("/best")
+    public ResponseEntity<CommonResponse<List<BestSellerResponse>>> getBestSeller() {
+        List<BestSellerResult> bestSeller = productFacade.BestSellerList();
+
+        List<BestSellerResponse> response = bestSeller.stream()
+            .map(BestSellerResponse::from)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, response));
     }
 }

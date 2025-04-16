@@ -15,4 +15,9 @@ public class ProductFacade {
 
         return productService.readProductList(PageRequest.of(page, size));
     }
+
+    public List<BestSellerResult> BestSellerList() {
+
+        return productService.bestSellerList();
+    }
 }

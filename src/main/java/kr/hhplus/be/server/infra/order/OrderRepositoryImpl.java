@@ -14,6 +14,7 @@ import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.QOrderEntity;
 import kr.hhplus.be.server.domain.order.QOrderProductEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -46,14 +47,13 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     // createAt이 5분지난 미결재건 주문건 조회
     @Override
-    public List<OrderEntity> findNotPaidOrdersOlderThan() {
-        List<OrderEntity> expiredOrders = queryFactory
-            .selectFrom(order)
-            .where(dateTimeTemplate(LocalDateTime.class,
-                "DATE_ADD({0}, INTERVAL 5 MINUTE)", order.createdAt
-            ).lt(LocalDateTime.now()),order.status.eq(PaymentStatus.NOT_PAID))
+    public List<OrderEntity> findNotPaidOrdersOlderThan(LocalDateTime expiredTime) {
+        return queryFactory.selectFrom(order)
+            .where(
+                order.createdAt.before(LocalDateTime.now().minusMinutes(5)),
+                order.status.eq(PaymentStatus.NOT_PAID)
+            )
             .fetch();
-        return List.of();
     }
 // 사용안함
     @Override

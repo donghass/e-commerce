@@ -45,6 +45,13 @@ public class ProductEntity {
         // 재고 차감
         this.stock -= quantity;
     }
+    public void plusStock(Long quantity) {
+        if (quantity > this.stock) {
+            throw new BusinessException(ProductErrorCode.INVALID_QUANTITY);
+        }
+        // 재고 차감
+        this.stock += quantity;
+    }
 
     public Long orderProductAmount(Long price, Long quantity) {
         return price * quantity;

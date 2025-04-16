@@ -88,8 +88,7 @@ public class CouponTest {
         // Mocking repository calls
         when(couponRepository.findByCouponId(couponId)).thenReturn(Optional.of(mockCoupon));
         when(userCouponRepository.findByCouponId(couponId)).thenReturn(Optional.empty());
-        doNothing().when(couponRepository).updateCouponStock(couponId, 9L);  // 쿠폰 수량 차감
-        doNothing().when(userCouponRepository).saveCoupon(any(UserCouponEntity.class));  // void 메서드에는 doNothing() 사용
+        doNothing().when(userCouponRepository).save(any(UserCouponEntity.class));  // void 메서드에는 doNothing() 사용
 
         // Act
         couponService.createCoupon(command);
@@ -97,8 +96,7 @@ public class CouponTest {
         // Assert
         verify(couponRepository).findByCouponId(couponId);  // coupon 조회
         verify(userCouponRepository).findByCouponId(couponId);  // 이미 발급된 쿠폰이 있는지 확인
-        verify(couponRepository).updateCouponStock(couponId, 9L);  // 쿠폰 수량 차감
-        verify(userCouponRepository).saveCoupon(any(UserCouponEntity.class));  // 사용자 쿠폰 저장
+        verify(userCouponRepository).save(any(UserCouponEntity.class));  // 사용자 쿠폰 저장
     }
 
 

@@ -21,12 +21,10 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final JPAQueryFactory queryFactory; //복잡한 조건, 일부 필드만 조회, 최적화가 필요할 때
     private final EntityManager em;
 
-    public ProductRepositoryImpl(JpaProductRepository jpaProductRepository, EntityManager em) {
-        this.jpaProductRepository = jpaProductRepository;
-        this.em = em;
-        this.queryFactory = new JPAQueryFactory(em);
-    }
+
     QProductEntity product = QProductEntity.productEntity;
+
+
 
     @Override
     public Page<ProductEntity> findPagedProducts(Pageable pageable) {
@@ -66,6 +64,11 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public void save(ProductEntity product) {
+
+    }
+
+    @Override
+    public void saveAll(List<ProductEntity> productDummyList) {
 
     }
 
