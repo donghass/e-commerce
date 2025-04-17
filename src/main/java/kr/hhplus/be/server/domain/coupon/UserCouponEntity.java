@@ -57,7 +57,7 @@ public class UserCouponEntity {
 
 
     public void validateCoupon(UserCouponEntity userCoupon) {
-// 1. 쿠폰 유효성 검증
+//      쿠폰 유효성 검증
         if (userCoupon.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new BusinessException(CouponErrorCode.COUPON_EXPIRED);
         }
