@@ -58,7 +58,7 @@ public class CouponTest {
 
         // Mocking repository calls
         when(userCouponRepository.findById(userCouponId)).thenReturn(Optional.of(mockUserCoupon));
-        when(couponRepository.findByCouponId(couponId)).thenReturn(Optional.of(mockCoupon));
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
 
         // Act
         CouponDiscountResult couponDiscountResult = couponService.useCoupon(userCouponId);
@@ -71,7 +71,7 @@ public class CouponTest {
 
         // Verifying repository interactions
         verify(userCouponRepository).findById(userCouponId);
-        verify(couponRepository).findByCouponId(couponId);
+        verify(couponRepository).findById(couponId);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class CouponTest {
         CouponIssueCommand command = new CouponIssueCommand(userId, couponId);
 
         // Mocking repository calls
-        when(couponRepository.findByCouponId(couponId)).thenReturn(Optional.of(mockCoupon));
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
         when(userCouponRepository.findByCouponId(couponId)).thenReturn(Optional.empty());
         doNothing().when(userCouponRepository).save(any(UserCouponEntity.class));  // void 메서드에는 doNothing() 사용
 
@@ -94,7 +94,7 @@ public class CouponTest {
         couponService.createCoupon(command);
 
         // Assert
-        verify(couponRepository).findByCouponId(couponId);  // coupon 조회
+        verify(couponRepository).findById(couponId);  // coupon 조회
         verify(userCouponRepository).findByCouponId(couponId);  // 이미 발급된 쿠폰이 있는지 확인
         verify(userCouponRepository).save(any(UserCouponEntity.class));  // 사용자 쿠폰 저장
     }

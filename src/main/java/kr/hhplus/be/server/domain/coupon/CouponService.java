@@ -22,7 +22,7 @@ public class CouponService {
         UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
             .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
 
-        CouponEntity coupon = couponRepository.findByCouponId(userCoupon.getCouponId())
+        CouponEntity coupon = couponRepository.findById(userCoupon.getCouponId())
             .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 
         // 쿠폰 검증
@@ -35,7 +35,7 @@ public class CouponService {
     // 쿠폰발급 동시성 제어는 아직 안함
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
-        CouponEntity coupon = couponRepository.findByCouponId(command.couponId())
+        CouponEntity coupon = couponRepository.findById(command.couponId())
             .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 
         coupon.couponUpdate();

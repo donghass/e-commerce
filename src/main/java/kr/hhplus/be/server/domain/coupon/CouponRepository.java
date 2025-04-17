@@ -9,15 +9,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CouponRepository {
 
-    Optional<CouponEntity> findByCouponId(Long couponId);
+    Optional<CouponEntity> findById(Long couponId);
 
     void updateCouponStock(Long couponId, Long toStock);
 
-    void save(CouponEntity coupon);
+    CouponEntity save(CouponEntity coupon);
 
     void saveAll(List<CouponEntity> dummyList);
 
     Map<Object, Object> findAll();
 
     CouponEntity saveAndFlush(CouponEntity coupon);
+
+    void flush();
 }

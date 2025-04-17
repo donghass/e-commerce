@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "bestSeller")
+@Table(name = "best_seller")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BestSellerEntity {

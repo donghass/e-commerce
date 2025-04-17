@@ -24,7 +24,7 @@ public class CouponRepositoryImpl implements CouponRepository {
     QCouponEntity coupon = QCouponEntity.couponEntity;
 
     @Override
-    public Optional<CouponEntity> findByCouponId(Long couponId) {
+    public Optional<CouponEntity> findById(Long couponId) {
         return Optional.empty();
     }
 
@@ -34,8 +34,9 @@ public class CouponRepositoryImpl implements CouponRepository {
     }
 
     @Override
-    public void save(CouponEntity coupon) {
+    public CouponEntity save(CouponEntity coupon) {
 
+        return coupon;
     }
 
     @Override
@@ -63,5 +64,10 @@ public class CouponRepositoryImpl implements CouponRepository {
     public CouponEntity saveAndFlush(CouponEntity coupon) {
 
         return coupon;
+    }
+
+    @Override
+    public void flush() {
+
     }
 }

@@ -1,7 +1,10 @@
 package kr.hhplus.be.server.infra.coupon;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
@@ -11,6 +14,7 @@ import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.order.QOrderEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -35,6 +39,14 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     @Override
     public void save(UserCouponEntity userCoupon) {
 
+    }
+
+    @Override
+    public List<UserCouponEntity> findByUserId(long userId) {
+        return (List<UserCouponEntity>) queryFactory
+            .selectFrom(userCoupon)
+            .where(userCoupon.id.eq(userId))
+            .fetchOne();
     }
 
 
