@@ -25,7 +25,7 @@ public class OrderProductEntity {
     @Column(nullable = false, name = "productId")
     private Long productId;
     @Column(nullable = false, name = "ordersId")
-    private Long ordersId;
+    private Long orderId;
     @Column(nullable = false, name = "amount")
     private Long amount;
     @Column(nullable = false, name = "quantity")
@@ -36,10 +36,10 @@ public class OrderProductEntity {
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    public static OrderProductEntity create(Long productId, Long ordersId, Long amount, Long quantity) {
+    public static OrderProductEntity create(Long productId, Long orderId, Long amount, Long quantity) {
         OrderProductEntity orderItem = new OrderProductEntity();
         orderItem.productId = productId;
-        orderItem.ordersId = ordersId;
+        orderItem.orderId = orderId;
         orderItem.amount = amount;
         orderItem.quantity = quantity;
         return orderItem;

@@ -44,11 +44,8 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Optional<ProductEntity> findById(Long id) {
-        ProductEntity result = queryFactory
-            .selectFrom(product)
-            .where(product.id.eq(id))
-            .fetchOne();
-        return Optional.ofNullable(result);
+
+        return jpaProductRepository.findById(id);
     }
 
     @Override
@@ -64,12 +61,18 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public void save(ProductEntity product) {
-
+        jpaProductRepository.save(product);
     }
 
     @Override
-    public void saveAll(List<ProductEntity> productDummyList) {
+    public List<ProductEntity> saveAll(List<ProductEntity> productDummyList) {
+        return jpaProductRepository.saveAll(productDummyList);
+    }
 
+    @Override
+    public ProductEntity saveAndFlush(ProductEntity dummyProduct) {
+
+        return jpaProductRepository.saveAndFlush(dummyProduct);
     }
 
 

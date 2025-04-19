@@ -5,12 +5,14 @@ import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CouponService {
     @Autowired
     private final CouponRepository couponRepository;
@@ -35,6 +37,7 @@ public class CouponService {
     // 쿠폰발급 동시성 제어는 아직 안함
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
+        log.info("💡 couponId 알려줘: {}", command.couponId());
         CouponEntity coupon = couponRepository.findById(command.couponId())
             .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 

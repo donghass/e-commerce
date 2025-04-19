@@ -25,14 +25,7 @@ public class PointController implements PointControllerDocs {
 //    @Operation(summary = "사용자 포인트 충전", description = "사용자 포인트를 충전합니다.")
     @PostMapping("/charge")
     public ResponseEntity<CommonResponse<PointResponse>> charge(@RequestBody ChargePointRequest request) {
-//        ChargePointCommand command = request.toCommand();
-//        PointDto pointDto = pointFacade.chargePoint(command);
-//
-//        // DTO → Response 객체로 변환 // 반환 값이 많지 않으므로 record 사용
-//        PointResponse point = PointResponse.builder()
-//            .userId(pointDto.userId())
-//            .balance(pointDto.balance())
-//            .build();
+
         PointResult dto = pointFacade.chargePoint(request.toCommand());
         CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, PointResponse.from(dto));
 
@@ -44,13 +37,6 @@ public class PointController implements PointControllerDocs {
 
         PointResult pointResult = pointFacade.readPoint(userId);
 
-        // DTO → Response 객체로 변환  // 반환 값이 많지 않으므로 record 사용
-//        PointResponse point = PointResponse.builder()
-//            .userId(pointDto.userId())
-//            .balance(pointDto.balance())
-//            .build();
-//
-//        CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, point);
         CommonResponse<PointResponse> response = CommonResponse.success(ResponseCode.SUCCESS, PointResponse.from(pointResult));
 
         return ResponseEntity.ok(response);
@@ -58,12 +44,9 @@ public class PointController implements PointControllerDocs {
 //  결제
     @PostMapping("/use")
     public ResponseEntity<CommonResponse<PointResponse>> usePoint(@RequestBody UsePointsRequest request) {
-        pointFacade.usePoint(request.getOrderId());
+        pointFacade.usePoint(request.orderId());
 
         // 성공적으로 처리되면 204 No Content 반환
         return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS));
     }
-
-
-
 }

@@ -12,4 +12,6 @@ public interface PointRepository {
     Optional<PointEntity> findByUserId(Long userId);
 
     void charge(Long userId, Long amount);
+
+    PointEntity saveAndFlush(PointEntity dummyPoint);
 }

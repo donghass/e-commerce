@@ -18,9 +18,10 @@ public interface OrderRepository {
     void updateOrderStatus(Long orderId, PaymentStatus status);
 
     List<OrderEntity> findNotPaidOrdersOlderThan(LocalDateTime expiredTime);
-    int updateStatus(@Param("orderId") Long orderId, @Param("status") PaymentStatus status);
 
     Optional<OrderProductEntity> findByOrderId(Long orderId);
 
     OrderProductEntity orderItemSave(OrderProductEntity orderProduct);
+
+    OrderEntity saveAndFlush(OrderEntity dummyOrder);
 }

@@ -36,4 +36,9 @@ public class PointRepositoryImpl implements PointRepository {
         queryFactory.update(point).set(point.balance,amount).where(point.userId.eq(userId)).execute();
     }
 
+    @Override
+    public PointEntity saveAndFlush(PointEntity dummyPoint) {
+        return jpaPointRepository.saveAndFlush(dummyPoint);
+    }
+
 }

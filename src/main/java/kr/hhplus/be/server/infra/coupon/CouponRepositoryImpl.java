@@ -25,7 +25,7 @@ public class CouponRepositoryImpl implements CouponRepository {
 
     @Override
     public Optional<CouponEntity> findById(Long couponId) {
-        return Optional.empty();
+        return jpaCouponRepository.findById(couponId);
     }
 
     @Override
@@ -36,12 +36,12 @@ public class CouponRepositoryImpl implements CouponRepository {
     @Override
     public CouponEntity save(CouponEntity coupon) {
 
-        return coupon;
+        return jpaCouponRepository.save(coupon);
     }
 
     @Override
-    public void saveAll(List<CouponEntity> dummyList) {
-
+    public List<CouponEntity> saveAll(List<CouponEntity> dummyList) {
+        return jpaCouponRepository.saveAll(dummyList);
     }
 
     @Override
@@ -63,11 +63,6 @@ public class CouponRepositoryImpl implements CouponRepository {
     @Override
     public CouponEntity saveAndFlush(CouponEntity coupon) {
 
-        return coupon;
-    }
-
-    @Override
-    public void flush() {
-
+        return jpaCouponRepository.saveAndFlush(coupon);
     }
 }

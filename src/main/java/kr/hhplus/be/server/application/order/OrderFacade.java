@@ -20,11 +20,11 @@ public class OrderFacade {
     // 주문
     @Transactional
     public OrderResult createOrder(OrderCommand command) {
-        // 주문 상품으로 주문총액 조회 및 재고 차감
+        // 주문 상품으로 주문총액 조회
         Long totalAmount = productService.readOrderProduct(command.orderItem());
         // 쿠폰 할인 가격 조회
         CouponDiscountResult discount = couponService.useCoupon(command.userCouponId());
-        // 주문 생성
+        // 주문 생성 및 재고차감
         Long orderId = orderService.createOrder(command,totalAmount,discount);
         return new OrderResult(orderId);
     }

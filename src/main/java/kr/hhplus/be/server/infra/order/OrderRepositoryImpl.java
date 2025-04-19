@@ -21,8 +21,8 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
 
-    private final JpaOrderRepository jpaProductRepository;
-    private final JpaOrderProductRepository jpaProductProductRepository;
+    private final JpaOrderRepository jpaOrderRepository;
+    private final JpaOrderProductRepository jpaOrderProductRepository;
     private final JPAQueryFactory queryFactory; //복잡한 조건, 일부 필드만 조회, 최적화가 필요할 때
     private final EntityManager em;
 
@@ -31,12 +31,14 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public <T> T save(OrderEntity order) {
-        return null;
+
+        return (T) jpaOrderRepository.save(order);
     }
 
     @Override
-    public Optional<OrderEntity> findById(Long orderId) {
-        return Optional.empty();
+    public Optional<OrderEntity> findById(Long id) {
+
+        return jpaOrderRepository.findById(id);
     }
 
     // 결제하여 주문상태값 변경
@@ -56,14 +58,15 @@ public class OrderRepositoryImpl implements OrderRepository {
             .fetch();
     }
 // 사용안함
-    @Override
-    public int updateStatus(Long orderId, PaymentStatus status) {
-        return 0;
-    }
+//    @Override
+//    public int updateStatus(Long orderId, PaymentStatus status) {
+//        return 0;
+//    }
 
     @Override
     public Optional<OrderProductEntity> findByOrderId(Long orderId) {
-        return Optional.empty();
+        return jpaOrderProductRepository.findByOrderId(orderId);
+
     }
 
     // insert
@@ -71,5 +74,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     public OrderProductEntity orderItemSave(OrderProductEntity orderProduct) {
         em.persist(orderProduct); // INSERT 쿼리 발생
         return orderProduct;
+    }
+
+    @Override
+    public OrderEntity saveAndFlush(OrderEntity dummyOrder) {
+        return jpaOrderRepository.saveAndFlush(dummyOrder);
     }
 }

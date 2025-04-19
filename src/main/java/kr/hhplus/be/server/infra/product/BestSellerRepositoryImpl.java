@@ -27,6 +27,6 @@ public class BestSellerRepositoryImpl implements BestSellerRepository {
 
     @Override
     public void saveAll(List<BestSellerEntity> dummyList) {
-
+        jpaBestSellerRepository.saveAll(dummyList);
     }
 }

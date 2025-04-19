@@ -45,14 +45,14 @@ public class ProductService {
             ProductEntity product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 
-            product.updateStock(quantity);
+//            product.updateStock(quantity);
 //            Long currentStock = product.getStock();
 //            if (quantity > currentStock) {
 //                throw new BusinessException(ProductErrorCode.INVALID_QUANTITY);
 //            }
 //            // 재고 차감
 //            updateQuantity = currentStock - quantity;
-            productRepository.save(product);
+//            productRepository.save(product);
 
             totalAmount += product.getPrice() * quantity;
         }

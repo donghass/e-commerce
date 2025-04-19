@@ -68,9 +68,6 @@ public class CouponControllerIntegrationTest extends IntegerationTestSupport {
         CouponEntity savedCoupon = couponRepository.saveAndFlush(dummyCoupon);
         System.out.println("=== Dummy Coupons ===");
         System.out.println("Saved coupon ID: " + savedCoupon.getId());
-        System.out.println("Saved coupon ID: " + dummyCoupon.getId());
-        couponRepository.flush();            // 실제 DB에 반영
-        entityManager.clear();               // 영속성 컨텍스트 비워주기
 
         CouponIssueRequest request = new CouponIssueRequest(100L,savedCoupon.getId());
 

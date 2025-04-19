@@ -12,23 +12,24 @@ public class BestSellerRefresher {
 
     private final EntityManager em;
 
-    @Scheduled(cron = "0 0 * * * *") // 매시간 정각
+    @Scheduled(cron = "0 0 0 * * *") // 매시간 정각
     @Transactional
     public void refreshBestSeller() {
         em.createNativeQuery("TRUNCATE TABLE bestSeller").executeUpdate();
         em.createNativeQuery("""
-            INSERT INTO bestSeller (productId, name, price, stock, sales)
-            SELECT
-                p.id AS productId,
-                p.name,
-                p.price,
-                p.stock,
-                SUM(op.quantity) AS sales
-            FROM orderProduct op
-            JOIN product p ON op.productId = p.id
-            GROUP BY p.id
-            ORDER BY sales DESC
-            LIMIT 5
-        """).executeUpdate();
+        INSERT INTO bestSeller (productId, name, price, stock, sales)
+        SELECT
+            p.id AS productId,
+            p.name,
+            p.price,
+            p.stock,
+            SUM(op.quantity) AS sales
+        FROM orderProduct op
+        JOIN product p ON op.productId = p.id
+        WHERE op.createdAt >= NOW() - INTERVAL 3 DAY  -- ✅ 최근 3일 조건 추가
+        GROUP BY p.id
+        ORDER BY sales DESC
+        LIMIT 5
+    """).executeUpdate();
     }
 }

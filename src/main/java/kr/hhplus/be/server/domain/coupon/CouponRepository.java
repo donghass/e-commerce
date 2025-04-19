@@ -15,11 +15,10 @@ public interface CouponRepository {
 
     CouponEntity save(CouponEntity coupon);
 
-    void saveAll(List<CouponEntity> dummyList);
+    List<CouponEntity> saveAll(List<CouponEntity> dummyList);
 
     Map<Object, Object> findAll();
 
     CouponEntity saveAndFlush(CouponEntity coupon);
 
-    void flush();
 }

@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserCouponRepositoryImpl implements UserCouponRepository {
 
-    private final JpaUserCouponRepository jpaCouponRepository;
+    private final JpaUserCouponRepository jpaUserCouponRepository;
     private final JPAQueryFactory queryFactory; //복잡한 조건, 일부 필드만 조회, 최적화가 필요할 때
     private final EntityManager em;
 
@@ -28,17 +28,17 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
 
     @Override
     public Optional<UserCouponEntity> findById(Long userCouponId) {
-        return Optional.empty();
+        return jpaUserCouponRepository.findById(userCouponId);
     }
 
     @Override
     public Optional<UserCouponEntity> findByCouponId(Long couponId) {
-        return Optional.empty();
+        return jpaUserCouponRepository.findByCouponId(couponId);
     }
 
     @Override
     public void save(UserCouponEntity userCoupon) {
-
+        jpaUserCouponRepository.save(userCoupon);
     }
 
     @Override
@@ -50,4 +50,8 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     }
 
 
+    @Override
+    public UserCouponEntity saveAndFlush(UserCouponEntity dummyUserCoupon) {
+        return jpaUserCouponRepository.saveAndFlush(dummyUserCoupon);
+    }
 }
