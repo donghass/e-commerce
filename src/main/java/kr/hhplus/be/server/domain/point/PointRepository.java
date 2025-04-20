@@ -6,12 +6,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PointRepository {
 
-    default void usePoint(Long userId, Long balance) {
-    }
-
     Optional<PointEntity> findByUserId(Long userId);
 
-    void charge(Long userId, Long amount);
-
     PointEntity saveAndFlush(PointEntity dummyPoint);
+
+    void save(PointEntity point);
 }

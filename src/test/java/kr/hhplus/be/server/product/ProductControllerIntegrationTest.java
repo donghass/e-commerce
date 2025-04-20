@@ -1,4 +1,4 @@
-package kr.hhplus.be.server;
+package kr.hhplus.be.server.product;
 
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 import java.util.List;
+import kr.hhplus.be.server.ServerApplication;
 import kr.hhplus.be.server.domain.product.BestSellerEntity;
 import kr.hhplus.be.server.domain.product.BestSellerRepository;
 import kr.hhplus.be.server.domain.product.ProductEntity;

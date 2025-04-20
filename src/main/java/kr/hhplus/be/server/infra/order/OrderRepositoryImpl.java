@@ -80,4 +80,9 @@ public class OrderRepositoryImpl implements OrderRepository {
     public OrderEntity saveAndFlush(OrderEntity dummyOrder) {
         return jpaOrderRepository.saveAndFlush(dummyOrder);
     }
+
+    @Override
+    public void saveAll(List<OrderProductEntity> orderItems) {
+        jpaOrderProductRepository.saveAll(orderItems);
+    }
 }

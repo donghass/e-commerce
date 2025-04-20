@@ -8,11 +8,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -37,10 +39,13 @@ public class PointEntity {
     @Column(nullable = false, name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Version
+    private Long version;  // 낙관적 락 관리용 버전
+
     public Long charge(Long amount) {
         if(this.balance + amount > 5000000){throw new BusinessException(PointErrorCode.EXCEED_TOTAL_CHARGE_LIMIT);}
         this.balance += amount;
-        return balance;
+        return this.balance;
     }
 // 포인트 사용, 충전 팩토리
     public static PointEntity save(Long userId, Long balance) {
@@ -48,5 +53,11 @@ public class PointEntity {
         point.userId = userId;
         point.balance = balance;
         return point;
+    }
+
+    public Long use(Long totalAmount) {
+        if(balance <= 0){throw new BusinessException(PointErrorCode.POINT_BALANCE_INSUFFICIENT);}
+        this.balance -= totalAmount;
+        return this.balance;
     }
 }

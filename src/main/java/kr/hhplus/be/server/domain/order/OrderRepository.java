@@ -24,4 +24,6 @@ public interface OrderRepository {
     OrderProductEntity orderItemSave(OrderProductEntity orderProduct);
 
     OrderEntity saveAndFlush(OrderEntity dummyOrder);
+
+    void saveAll(List<OrderProductEntity> orderItems);
 }

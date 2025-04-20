@@ -44,13 +44,23 @@ class SchedulerTest {
         LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
 
         // 주문 엔티티 (만료 예정 상태)
-        OrderEntity expiredOrder = new OrderEntity(orderId, 1L, 1L, 1000L, PaymentStatus.EXPIRED,
-            LocalDateTime.now().minusMinutes(10), LocalDateTime.now());
+        OrderEntity expiredOrder = OrderEntity.builder()
+            .id(orderId)
+            .userId(1L)
+            .userCouponId(1L)
+            .totalAmount(1000L)
+            .status(PaymentStatus.EXPIRED)
+            .build();
 
         ReflectionTestUtils.setField(expiredOrder, "id", orderId);
 
         // 주문 상품
-        OrderProductEntity orderProduct = new OrderProductEntity(1L, productId, orderId, 1000L, quantity, null, null);
+        OrderProductEntity orderProduct = OrderProductEntity.builder()
+            .productId(productId)
+            .order(expiredOrder)
+            .amount(1000L)
+            .quantity(quantity)
+            .build();
 
         // 상품
         ProductEntity product = new ProductEntity(productId, "상품A", "옷", 1000L, currentStock,

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server;
+package kr.hhplus.be.server.product;
 
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;

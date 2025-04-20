@@ -33,7 +33,7 @@ public class ProductService {
         ));
     }
 
-    //주문 총액 조회 및 재고 차감
+    //주문 총액 조회
     public Long readOrderProduct(List<OrderProduct> orderProduct){
         Long totalAmount = 0L;
         for(int i = 0; i < orderProduct.size(); i++){
@@ -63,7 +63,6 @@ public class ProductService {
     public List<BestSellerResult> bestSellerList() {
 
         List<BestSellerEntity> bestSeller = bestSellerRepository.findAll();
-
 
         return bestSeller.stream()
             .map(b -> new BestSellerResult(

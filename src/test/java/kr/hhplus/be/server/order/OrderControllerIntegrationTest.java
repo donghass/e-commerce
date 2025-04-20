@@ -1,4 +1,4 @@
-package kr.hhplus.be.server;
+package kr.hhplus.be.server.order;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -15,6 +15,7 @@ import kr.hhplus.be.server.domain.point.PointRepository;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.UserEntity;
+import kr.hhplus.be.server.domain.user.UserRepository;
 import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.DisplayName;
@@ -53,11 +54,20 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
     private UserCouponRepository userCouponRepository;
     @Autowired
     private PointRepository pointRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("주문 생성 성공")
     void createOrder_success() throws Exception {
+        // 사용자 생성
+        List<UserEntity> dummyUser = IntStream.range(0, 5) // 원하는 개수만큼 생성
+            .mapToObj(i -> Instancio.of(UserEntity.class)
+                .ignore(Select.field(UserEntity.class, "id"))
+                .create())
+            .toList();
 
+        List<UserEntity> savedUser = userRepository.saveAll(dummyUser);
         // 상품 생성
         List<ProductEntity> dummyProducts = IntStream.range(0, 5) // 원하는 개수만큼 생성
             .mapToObj(i -> Instancio.of(ProductEntity.class)

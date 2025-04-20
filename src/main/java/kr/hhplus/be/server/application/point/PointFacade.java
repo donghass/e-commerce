@@ -31,7 +31,7 @@ public class PointFacade {
         if (command.amount() <= 0) {throw new BusinessException(PointErrorCode.INVALID_CHARGE_AMOUNT);}
         if (command.amount() > 1000000) {throw new BusinessException(PointErrorCode.EXCEED_ONE_TIME_LIMIT);}
 
-        return pointService.chargePoint(command);
+        return pointService.chargePointWithRetry(command);
     }
 
     // 결재
@@ -40,7 +40,7 @@ public class PointFacade {
         OrderEntity order = orderService.readOrder(orderId);
         PointResult point = pointService.readPoint(order.getUserId());
 
-        pointService.UseAndHistoryPoint(order,point.balance());
+        pointService.UseAndHistoryPoint(order);
 
         orderService.updateOrderStatus(orderId);
 

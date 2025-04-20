@@ -22,23 +22,18 @@ public class PointRepositoryImpl implements PointRepository {
     QPointEntity point = QPointEntity.pointEntity;
 
     @Override
-    public void usePoint(Long userId, Long balance) {
-        queryFactory.update(point).set(point.balance,balance).where(point.userId.eq(userId)).execute();
-    }
-
-    @Override
     public Optional<PointEntity> findByUserId(Long userId) {
         return jpaPointRepository.findByUserId(userId);
     }
 
     @Override
-    public void charge(Long userId, Long amount) {
-        queryFactory.update(point).set(point.balance,amount).where(point.userId.eq(userId)).execute();
+    public PointEntity saveAndFlush(PointEntity dummyPoint) {
+        return jpaPointRepository.saveAndFlush(dummyPoint);
     }
 
     @Override
-    public PointEntity saveAndFlush(PointEntity dummyPoint) {
-        return jpaPointRepository.saveAndFlush(dummyPoint);
+    public void save(PointEntity point) {
+        jpaPointRepository.save(point);
     }
 
 }

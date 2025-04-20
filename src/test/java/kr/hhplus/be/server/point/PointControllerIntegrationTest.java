@@ -1,10 +1,9 @@
-package kr.hhplus.be.server;
+package kr.hhplus.be.server.point;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.hhplus.be.server.api.point.ChargePointRequest;
 import kr.hhplus.be.server.api.point.UsePointsRequest;
 import kr.hhplus.be.server.cleanUp.IntegerationTestSupport;
-import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.OrderRepository;
@@ -14,14 +13,10 @@ import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

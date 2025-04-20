@@ -1,4 +1,4 @@
-package kr.hhplus.be.server;
+package kr.hhplus.be.server.order;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -8,16 +8,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
 import kr.hhplus.be.server.domain.coupon.CouponEntity.DiscountType;
+import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.OrderService;
+import kr.hhplus.be.server.domain.user.UserEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,16 +46,19 @@ public class OrderTest {
         Long discountRate = 20L; // 20% 할인
         Long totalAmount = 8000L;
 
+        UserEntity user = new UserEntity(userId, LocalDateTime.now(),LocalDateTime.now());
+        UserCouponEntity userCoupon = new UserCouponEntity(1L,userId,couponId,false,"쿠폰",null,LocalDateTime.now().plusDays(7),  LocalDateTime.now(),LocalDateTime.now());
+
         OrderCommand command = new OrderCommand(userId, couponId, List.of());
 
         CouponDiscountResult discount = new CouponDiscountResult(discountRate, DiscountType.RATE);
 
-        OrderEntity savedOrder = OrderEntity.create(userId, couponId, totalAmount);
+        OrderEntity savedOrder = OrderEntity.create(user, userCoupon);
         ReflectionTestUtils.setField(savedOrder, "id", 123L); // 또는 생성자에 id 포함
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
 
         // Act  실행
-        Long result = orderService.createOrder(command, amount, discount);
+        Long result = orderService.createOrder(command, Optional.of(discount));
 
         // Assert 검증
         assertThat(result).isEqualTo(123L); // 저장된 order ID
@@ -77,14 +83,17 @@ public class OrderTest {
         OrderCommand command = new OrderCommand(userId, couponId, List.of());
         CouponDiscountResult discount = new CouponDiscountResult(discountAmount, DiscountType.AMOUNT);
 
+        UserEntity user = new UserEntity(userId, LocalDateTime.now(),LocalDateTime.now());
+        UserCouponEntity userCoupon = new UserCouponEntity(1L,userId,couponId,false,"쿠폰",null,LocalDateTime.now().plusDays(7),  LocalDateTime.now(),LocalDateTime.now());
 
-        OrderEntity savedOrder = OrderEntity.create(userId, couponId, totalAmount);
+
+        OrderEntity savedOrder = OrderEntity.create(user, userCoupon);
         ReflectionTestUtils.setField(savedOrder, "id", 123L); // 또는 생성자에 id 포함
 
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
 
         // Act
-        Long result = orderService.createOrder(command, amount, discount);
+        Long result = orderService.createOrder(command, Optional.of(discount));
 
         // Assert
         assertThat(result).isEqualTo(123L);
@@ -105,7 +114,10 @@ public class OrderTest {
         Long couponId = 200L;
         Long totalAmount = 7000L;
 
-        OrderEntity mockOrder = OrderEntity.create(userId, couponId, totalAmount);
+        UserEntity user = new UserEntity(userId, LocalDateTime.now(),LocalDateTime.now());
+        UserCouponEntity userCoupon = new UserCouponEntity(1L,userId,couponId,false,"쿠폰",null,LocalDateTime.now().plusDays(7),  LocalDateTime.now(),LocalDateTime.now());
+
+        OrderEntity mockOrder = OrderEntity.create(user, userCoupon);
         ReflectionTestUtils.setField(mockOrder, "id", 123L); // 또는 생성자에 id 포함
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));

@@ -4,13 +4,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.application.order.OrderCommand;
+import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
+import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
+import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
+import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
+import kr.hhplus.be.server.domain.user.UserEntity;
+import kr.hhplus.be.server.domain.user.UserRepository;
+import kr.hhplus.be.server.domain.user.execption.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,31 +30,48 @@ public class OrderService {
     private final OrderRepository orderRepository;
     @Autowired
     private final ProductRepository productRepository;
+    @Autowired
+    private final UserRepository userRepository;
+    @Autowired
+    private final UserCouponRepository userCouponRepository;
 
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
-    public Long createOrder(OrderCommand command, Long amount, CouponDiscountResult discount) {
-        Long totalAmount = DiscountPolicy.discount(amount, discount);  // 총 할인가
+    public Long createOrder(OrderCommand command, Optional<CouponDiscountResult> discount) {
+
+        // 유저 검증
+        UserEntity user = userRepository.findById(command.userId())
+            .orElseThrow(() -> new BusinessException(UserErrorCode.INVALID_USER_ID));
+
+        UserCouponEntity userCoupon = userCouponRepository.findById(command.userCouponId())
+            .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
+
 
         // 도메인 객체 생성
-        OrderEntity order = OrderEntity.create(command.userId(), command.userCouponId(), totalAmount);
-        // 주문 생성
-        OrderEntity saved = orderRepository.save(order);
+        OrderEntity order = OrderEntity.create(user, userCoupon);
 
-        // 재고 차감 및 주문상품 생성
-        for(int i = 0; i < command.orderItem().size(); i++){
-            ProductEntity product = productRepository.findById(command.orderItem().get(i).productId())
+        Long totalAmount = 0L;
+
+        for (OrderProduct op : command.orderItem()) {
+            Long productId = op.productId();
+            Long quantity = op.quantity();
+
+            // 1. 상품 조회
+            ProductEntity product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 
-            product.updateStock(command.orderItem().get(i).quantity());
+            // 2. 재고 차감
+            product.updateStock(quantity);
 
-            Long orderProductAmount =  product.orderProductAmount(product.getPrice(),command.orderItem().get(i).quantity());
 
-            // 도메인 객체 생성
-            OrderProductEntity orderProduct = OrderProductEntity.create(command.orderItem().get(i).productId(),
-                saved.getId(), orderProductAmount, command.orderItem().get(i).quantity());
-            orderRepository.orderItemSave(orderProduct);
+            // 주문 상품 추가 및 주문 총액 계산
+            order.addOrderProduct(product, quantity);
+
+            orderRepository.saveAll(order.getOrderItems());
         }
+        order.discount(discount);
+        // 주문 생성
+        OrderEntity saved = orderRepository.save(order);
 
         return saved.getId();
     }

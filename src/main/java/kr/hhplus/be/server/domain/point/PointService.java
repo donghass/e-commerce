@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.point;
 
+import jakarta.persistence.OptimisticLockException;
 import kr.hhplus.be.server.application.point.ChargePointCommand;
 import kr.hhplus.be.server.application.point.PointResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,16 +36,34 @@ public class PointService {
 
         return new PointResult(point.getUserId(), point.getBalance());
     }
+    // 동시성 충동 발생시 재시도 3회
+    @Transactional
+    public PointResult chargePointWithRetry(ChargePointCommand command) {
+        int retry = 3;
+
+        while (retry-- > 0) {
+            try {
+                return chargePoint(command); // 충전 로직 호출
+            } catch (ObjectOptimisticLockingFailureException | OptimisticLockException e) {
+                if (retry == 0) {
+                    throw new BusinessException(PointErrorCode.CONFLICT);
+                }
+                try {
+                    Thread.sleep(100); // 잠깐 대기 후 재시도
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        throw new BusinessException(PointErrorCode.CONFLICT); // 이건 거의 안 터짐
+    }
     // 포인트 충전
-    @Transactional  // JPA 영속성 때문에 save 하지 않아도 자동으로 충전금액 update 된다(더티체킹) // 신규 데이터 추가일 경우엔 안됨
     public PointResult chargePoint(ChargePointCommand command) {
         PointEntity point = pointRepository.findByUserId(command.userId())
             .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));
 
-        // 정책 검증 Entity 에서
-//        if(point.getBalance() + command.amount() > 5000000){throw new BusinessException(PointErrorCode.EXCEED_TOTAL_CHARGE_LIMIT);}
-        Long chargePoint = point.charge(command.amount());
-        pointRepository.charge(command.userId(),chargePoint);
+
+        point.charge(command.amount());
+        pointRepository.save(point);
 
         PointHistoryEntity pointHistory = PointHistoryEntity.save(point.getId(),command.amount(),point.getBalance(),
             Type.CHARGE);
@@ -55,18 +75,17 @@ public class PointService {
 
     // 포인트 사용
     @Transactional
-    public void UseAndHistoryPoint(OrderEntity order,Long userBalance){
-        Long balance = userBalance - order.getTotalAmount(); // 사용 후 금액 = 현재 사용자 포인트 - 주문 금액
-        if(balance <= 0){
-            throw new BusinessException(PointErrorCode.POINT_BALANCE_INSUFFICIENT);
-        }
-        pointRepository.usePoint(order.getUserId(), balance);
+    public void UseAndHistoryPoint(OrderEntity order){
 
         PointEntity point = pointRepository.findByUserId(order.getUserId())
             .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));
 
-        PointHistoryEntity pointHistory = PointHistoryEntity.save(point.getId(),order.getTotalAmount(),balance,
-            Type.USE);
+        point.use(order.getTotalAmount());
+
+        pointRepository.save(point);
+
+
+        PointHistoryEntity pointHistory = PointHistoryEntity.save(point.getId(), order.getTotalAmount(), point.getBalance(), Type.USE);
         pointHistoryRepository.save(pointHistory);
     }
 

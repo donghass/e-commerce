@@ -3,6 +3,7 @@ package kr.hhplus.be.server.infra.coupon;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.QCouponEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -23,6 +25,8 @@ public class CouponRepositoryImpl implements CouponRepository {
 
     QCouponEntity coupon = QCouponEntity.couponEntity;
 
+    // 쿠폰 발급은 api 호출 시작시 쿠폰 테이블에 id로 조회하여 쿠폰 차감 등 발급 로직 진행하므로 일관성을 위해 api 첫 조회쿼리에 lock
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Override
     public Optional<CouponEntity> findById(Long couponId) {
         return jpaCouponRepository.findById(couponId);

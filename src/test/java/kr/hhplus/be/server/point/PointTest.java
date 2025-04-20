@@ -1,4 +1,4 @@
-package kr.hhplus.be.server;
+package kr.hhplus.be.server.point;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,10 +8,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import kr.hhplus.be.server.application.point.ChargePointCommand;
 import kr.hhplus.be.server.application.point.PointResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.point.PointEntity;
 import kr.hhplus.be.server.domain.point.PointHistoryEntity;
@@ -19,6 +21,7 @@ import kr.hhplus.be.server.domain.point.PointHistoryEntity.Type;
 import kr.hhplus.be.server.domain.point.PointHistoryRepository;
 import kr.hhplus.be.server.domain.point.PointRepository;
 import kr.hhplus.be.server.domain.point.PointService;
+import kr.hhplus.be.server.domain.user.UserEntity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -108,8 +111,10 @@ public class PointTest {
 
         Long couponId = 200L;
 
+        UserEntity user = new UserEntity(userId, LocalDateTime.now(),LocalDateTime.now());
+        UserCouponEntity userCoupon = new UserCouponEntity(1L,userId,couponId,false,"쿠폰",null,LocalDateTime.now().plusDays(7),  LocalDateTime.now(),LocalDateTime.now());
 
-        OrderEntity mockOrder = OrderEntity.create(userId, couponId, orderTotalAmount);
+        OrderEntity mockOrder = OrderEntity.create(user, userCoupon);
 
 
 
@@ -125,15 +130,14 @@ public class PointTest {
 
         // mock 설정
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(mockPointEntity));
-        doNothing().when(pointRepository).usePoint(userId, remainingBalance);
         doNothing().when(pointHistoryRepository).save(any(PointHistoryEntity.class));  // void 메서드에는 doNothing() 사용
 
 
         // Act
-        pointService.UseAndHistoryPoint(mockOrder, userBalance);
+        pointService.UseAndHistoryPoint(mockOrder);
 
         // Assert
-        verify(pointRepository,times(1)).usePoint(userId, remainingBalance);
+        verify(pointRepository,times(1)).save(mockPointEntity);
         verify(pointHistoryRepository,times(1)).save(any(PointHistoryEntity.class));
     }
 
@@ -152,8 +156,6 @@ public class PointTest {
         // Stub: 포인트 조회
         Mockito.when(pointRepository.findByUserId(userId))
             .thenReturn(Optional.of(mockPointEntity));
-        // Stub: 포인트 저장은 내부에서 자동 처리되므로 charge 메서드만 검증
-        doNothing().when(pointRepository).charge(userId, afterBalance);
         // Stub: 포인트 히스토리 저장
         doNothing().when(pointHistoryRepository).save(any(PointHistoryEntity.class));
 
@@ -165,7 +167,6 @@ public class PointTest {
             .extracting(PointResult::userId, PointResult::balance)
             .containsExactly(userId, afterBalance);
 
-        Mockito.verify(pointRepository).charge(userId, afterBalance);
         Mockito.verify(pointHistoryRepository).save(any(PointHistoryEntity.class));
 
     }
