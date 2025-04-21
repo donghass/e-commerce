@@ -11,10 +11,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import kr.hhplus.be.server.api.order.OrderRequest.OrderItem;
-import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
-import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
+import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.user.UserEntity;
@@ -85,8 +82,9 @@ public class OrderEntity {
         this.orderItems.add(item);
         this.totalAmount += amount;
     }
-    public void discount(Optional<CouponDiscountResult> discount) {
-        this.totalAmount -= DiscountPolicy.discount(totalAmount, discount);
+    public void discountApply(CouponEntity coupon) {
+        Long discountPrice = coupon.discount(totalAmount, coupon);
+        this.totalAmount -= discountPrice;
     }
 
 }

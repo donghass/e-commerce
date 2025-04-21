@@ -1,12 +1,13 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
+import kr.hhplus.be.server.application.coupon.UserCouponListResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class CouponService {
-    @Autowired
+
     private final CouponRepository couponRepository;
-    @Autowired
     private final UserCouponRepository userCouponRepository;
-// 쿠폰 사용
+// 쿠폰 사용 // 리팩토링해서 사용 x
     public CouponDiscountResult useCoupon(Long userCouponId) {
 
         UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
@@ -53,5 +53,12 @@ public class CouponService {
 
         userCouponRepository.save(userCoupon);
     }
+
+    public List<UserCouponWithCouponDto> userCouponList(Long userId) {
+        List<UserCouponWithCouponDto> userCouponList = userCouponRepository.findByUserCouponList(userId);
+
+        return userCouponList;
+    }
+
 
 }

@@ -58,7 +58,7 @@ public class OrderTest {
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
 
         // Act  실행
-        Long result = orderService.createOrder(command, Optional.of(discount));
+        Long result = orderService.createOrder(command);
 
         // Assert 검증
         assertThat(result).isEqualTo(123L); // 저장된 order ID
@@ -93,7 +93,7 @@ public class OrderTest {
         when(orderRepository.save(any(OrderEntity.class))).thenReturn(savedOrder);
 
         // Act
-        Long result = orderService.createOrder(command, Optional.of(discount));
+        Long result = orderService.createOrder(command);
 
         // Assert
         assertThat(result).isEqualTo(123L);

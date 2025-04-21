@@ -7,6 +7,8 @@ import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
+import kr.hhplus.be.server.domain.coupon.CouponEntity;
+import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
@@ -26,18 +28,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    @Autowired
+
     private final OrderRepository orderRepository;
-    @Autowired
     private final ProductRepository productRepository;
-    @Autowired
     private final UserRepository userRepository;
-    @Autowired
     private final UserCouponRepository userCouponRepository;
+    private final CouponRepository couponRepository;
 
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
-    public Long createOrder(OrderCommand command, Optional<CouponDiscountResult> discount) {
+    public Long createOrder(OrderCommand command) {
 
         // 유저 검증
         UserEntity user = userRepository.findById(command.userId())
@@ -46,11 +46,11 @@ public class OrderService {
         UserCouponEntity userCoupon = userCouponRepository.findById(command.userCouponId())
             .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
 
+        CouponEntity coupon = couponRepository.findById((userCoupon.getCouponId()))
+            .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
 
         // 도메인 객체 생성
         OrderEntity order = OrderEntity.create(user, userCoupon);
-
-        Long totalAmount = 0L;
 
         for (OrderProduct op : command.orderItem()) {
             Long productId = op.productId();
@@ -63,13 +63,17 @@ public class OrderService {
             // 2. 재고 차감
             product.updateStock(quantity);
 
-
             // 주문 상품 추가 및 주문 총액 계산
             order.addOrderProduct(product, quantity);
 
             orderRepository.saveAll(order.getOrderItems());
         }
-        order.discount(discount);
+        if(coupon != null) {
+            order.discountApply(coupon);
+        }
+        // 쿠폰 적용
+        userCoupon.status(userCoupon, true);
+        userCouponRepository.save(userCoupon);
         // 주문 생성
         OrderEntity saved = orderRepository.save(order);
 
@@ -95,6 +99,14 @@ public class OrderService {
         // 주문상품 별 갯수 조회하여 상품 재고 원복
         for (OrderEntity order : expiredOrders) {
             orderRepository.updateOrderStatus(order.getId(), PaymentStatus.EXPIRED);
+
+            if(order.getUserCouponId() != null) {
+                UserCouponEntity userCoupon = userCouponRepository.findById(order.getUserCouponId())
+                    .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
+                userCoupon.status(userCoupon, false);
+
+                userCouponRepository.save(userCoupon);
+            }
 
             Optional<OrderProductEntity> orderProduct = orderRepository.findByOrderId(order.getId());
             ProductEntity product = productRepository.findById(orderProduct.get().getProductId())

@@ -11,9 +11,12 @@ import java.util.Date;
 import java.util.List;
 import kr.hhplus.be.server.application.coupon.CouponFacade;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
+import kr.hhplus.be.server.application.coupon.UserCouponListResult;
 import kr.hhplus.be.server.application.order.OrderFacade;
 import kr.hhplus.be.server.common.response.CommonResponse;
 import kr.hhplus.be.server.common.response.ResponseCode;
+import kr.hhplus.be.server.domain.coupon.CouponEntity;
+import kr.hhplus.be.server.domain.coupon.UserCouponWithCouponDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,11 +31,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor    // 생성자 자동 생성
 public class CouponController implements CouponControllerDocs {
     private final CouponFacade couponFacade;
-//    @Operation(summary = "사용자 쿠폰 조회", description = "userId를 이용해 해당 사용자의 보유 쿠폰 목록을 조회합니다.")
-    //@GetMapping
-    //public ResponseEntity<CommonResponse<List<CouponResponse>>> getCoupons(
 
-    //}
+    @Operation(summary = "사용자 쿠폰 조회", description = "userId를 이용해 해당 사용자의 보유 쿠폰 목록을 조회합니다.")
+    @GetMapping
+    public ResponseEntity<CommonResponse<UserCouponListResponse>> getCoupons(@RequestParam Long userId){
+        UserCouponListResult result = couponFacade.getUserCoupons(userId);
+        UserCouponListResponse response = UserCouponListResponse.from(result);
+
+        return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, response));
+    }
     @Operation(summary = "사용자 선착순 쿠폰 발급", description = "userId를 이용해 해당 사용자의 쿠폰을 발급합니다.")
     @PostMapping("/issue")
     public ResponseEntity<CommonResponse<Object>> issueCoupon(@Valid @RequestBody CouponIssueRequest request) {

@@ -22,11 +22,9 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class PointService {
-    @Autowired
+
     private final PointRepository pointRepository;
-    @Autowired
     private final PointHistoryRepository pointHistoryRepository;
-    @Autowired
     private final RestTemplate restTemplate; // 데이터플렛폼 전송 restTemplate
 
     // 포인트 조회

@@ -1,20 +1,17 @@
 package kr.hhplus.be.server.infra.coupon;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
-import kr.hhplus.be.server.domain.coupon.CouponEntity;
-import kr.hhplus.be.server.domain.coupon.CouponRepository;
+import kr.hhplus.be.server.domain.coupon.QCouponEntity;
 import kr.hhplus.be.server.domain.coupon.QUserCouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
-import kr.hhplus.be.server.domain.order.QOrderEntity;
+import kr.hhplus.be.server.domain.coupon.UserCouponWithCouponDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,6 +22,7 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     private final EntityManager em;
 
     QUserCouponEntity userCoupon = QUserCouponEntity.userCouponEntity;
+    QCouponEntity coupon = QCouponEntity.couponEntity;
 
     @Override
     public Optional<UserCouponEntity> findById(Long userCouponId) {
@@ -53,5 +51,28 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     @Override
     public UserCouponEntity saveAndFlush(UserCouponEntity dummyUserCoupon) {
         return jpaUserCouponRepository.saveAndFlush(dummyUserCoupon);
+    }
+
+    @Override
+    public List<UserCouponWithCouponDto> findByUserCouponList(Long userId) {
+        return queryFactory
+            .select(Projections.constructor(UserCouponWithCouponDto.class,
+                userCoupon.id,           // userCouponId
+                userCoupon.isUsed,       // isUsed
+                userCoupon.expiredAt,  // expiredAt
+                coupon.id,           // couponId
+                coupon.name,        // name
+                coupon.discountType, // discountType (Enum → String)
+                coupon.discountValue // discountValue
+            ))
+            .from(userCoupon)
+            .join(coupon).on(userCoupon.couponId.eq(coupon.id))
+            .where(userCoupon.userId.eq(userId))
+            .fetch();
+    }
+
+    @Override
+    public void saveAll(List<UserCouponEntity> userCouponDummyList) {
+        jpaUserCouponRepository.saveAll(userCouponDummyList);
     }
 }

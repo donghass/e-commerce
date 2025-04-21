@@ -66,6 +66,11 @@ public class UserCouponEntity {
             throw new BusinessException(CouponErrorCode.COUPON_ALREADY_USED);
         }
     }
+
+    public void status(UserCouponEntity userCoupon, boolean isUsed) {
+        this.isUsed = true;
+        this.issuedAt = LocalDateTime.now();
+    }
 }
 
 

@@ -9,7 +9,6 @@ import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,9 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
-    @Autowired
+
     private final ProductRepository productRepository;
-    @Autowired
     private final BestSellerRepository bestSellerRepository;
     // 상품 리스트 조회
     public Page<ProductResult> readProductList(Pageable pageable) {
@@ -33,7 +31,7 @@ public class ProductService {
         ));
     }
 
-    //주문 총액 조회
+    //주문 총액 조회  // 사용 안함
     public Long readOrderProduct(List<OrderProduct> orderProduct){
         Long totalAmount = 0L;
         for(int i = 0; i < orderProduct.size(); i++){

@@ -13,7 +13,6 @@ import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -71,6 +70,10 @@ public class CouponEntity {
         coupon.discountType = discountType;
         coupon.stock = stock;
         return coupon;
+    }
+
+    public static Long discount(Long amount, CouponEntity coupon) {
+        return DiscountPolicy.discount(amount, coupon);
     }
 }
 

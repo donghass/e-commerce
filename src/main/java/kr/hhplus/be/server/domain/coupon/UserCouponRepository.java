@@ -17,4 +17,8 @@ public interface UserCouponRepository {
     List<UserCouponEntity> findByUserId(long userId);
 
     UserCouponEntity saveAndFlush(UserCouponEntity dummyUserCoupon);
+
+    List<UserCouponWithCouponDto> findByUserCouponList(Long userId);
+
+    void saveAll(List<UserCouponEntity> userCouponDummyList);
 }
