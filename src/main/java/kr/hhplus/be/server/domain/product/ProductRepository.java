@@ -13,12 +13,16 @@ public interface ProductRepository {
     
 
     Page<ProductEntity> findPagedProducts(Pageable pageable);
+
     Optional<ProductEntity> findById(Long Id);
+
     int updateStock(@Param("productId") Long productId, @Param("stock") Long stock);
 
-    void save(ProductEntity product);
+    ProductEntity save(ProductEntity product);
 
     List<ProductEntity> saveAll(List<ProductEntity> productDummyList);
 
     ProductEntity saveAndFlush(ProductEntity dummyProduct);
+
+    Optional<ProductEntity> findByIdLock(Long productId);
 }

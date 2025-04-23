@@ -75,4 +75,17 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     public void saveAll(List<UserCouponEntity> userCouponDummyList) {
         jpaUserCouponRepository.saveAll(userCouponDummyList);
     }
+
+    @Override
+    public Optional<Object> findByUserIdAndCouponId(Long userId, Long couponId) {
+        return Optional.ofNullable(
+            queryFactory
+                .selectFrom(userCoupon)
+                .where(
+                    userCoupon.userId.eq(userId),
+                    userCoupon.couponId.eq(couponId)
+                )
+                .fetchOne()
+        );
+    }
 }

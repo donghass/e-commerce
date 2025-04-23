@@ -27,4 +27,5 @@ public class UserRepositoryImpl implements UserRepository {
     public List<UserEntity> saveAll(List<UserEntity> dummyUser) {
         return jpaUserRepository.saveAll(dummyUser);
     }
+
 }

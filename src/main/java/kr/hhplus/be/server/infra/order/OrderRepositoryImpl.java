@@ -4,6 +4,7 @@ import static com.querydsl.core.types.dsl.Expressions.dateTimeTemplate;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +55,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             .where(
                 order.createdAt.before(LocalDateTime.now().minusMinutes(5)),
                 order.status.eq(PaymentStatus.NOT_PAID)
-            )
+            ).setLockMode(LockModeType.PESSIMISTIC_WRITE)  // 락 설정
             .fetch();
     }
 // 사용안함

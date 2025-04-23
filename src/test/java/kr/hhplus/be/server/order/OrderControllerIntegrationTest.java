@@ -1,8 +1,13 @@
 package kr.hhplus.be.server.order;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
+import kr.hhplus.be.server.api.coupon.CouponIssueRequest;
 import kr.hhplus.be.server.api.order.OrderRequest;
 import kr.hhplus.be.server.api.order.OrderRequest.OrderItem;
 import kr.hhplus.be.server.cleanUp.IntegerationTestSupport;
@@ -18,6 +23,7 @@ import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import org.instancio.Instancio;
 import org.instancio.Select;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +40,7 @@ import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -131,5 +138,68 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
         // 🔸 후속 검증 (재고 차감 확인)
         ProductEntity updated = productRepository.findById(dummyProducts.get(0).getId()).orElseThrow();
         assertThat(updated.getStock()).isEqualTo(7L); // 10 - 2 = 8
+    }
+
+    @Test
+    @DisplayName("주문 재고 차감 동시성 테스트")
+    void createOrder_concurrent_stockLimit() throws Exception {
+        // 10명의 사용자 생성
+        List<UserEntity> users = IntStream.range(0, 10)
+            .mapToObj(i -> Instancio.of(UserEntity.class)
+                .ignore(Select.field(UserEntity.class, "id"))
+                .create())
+            .toList();
+        List<UserEntity> savedUsers = userRepository.saveAll(users);
+
+        // 재고 10인 상품 등록
+        ProductEntity product = Instancio.of(ProductEntity.class)
+            .ignore(Select.field(ProductEntity.class, "id"))
+            .set(Select.field(ProductEntity.class, "stock"), 10L)
+            .create();
+        ProductEntity savedProduct = productRepository.save(product);
+
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            int finalI = i;
+            executorService.submit(() -> {
+                try {
+                    // OrderItem 생성
+                    OrderRequest.OrderItem item = new OrderRequest.OrderItem();
+                    item.setProductId(savedProduct.getId());
+                    item.setQuantity(1L);
+
+                    OrderRequest request = new OrderRequest();
+
+                    Field userIdField = OrderRequest.class.getDeclaredField("userId");
+                    userIdField.setAccessible(true);
+                    userIdField.set(request, savedUsers.get(finalI).getId());
+
+                    Field orderItemsField = OrderRequest.class.getDeclaredField("orderItems");
+                    orderItemsField.setAccessible(true);
+                    orderItemsField.set(request, new ArrayList<>(List.of(item)));
+
+                    mockMvc.perform(post("/api/v1/orders")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                        .andDo(print());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        // 검증
+        ProductEntity updated = productRepository.findById(savedProduct.getId()).orElseThrow();
+
+        System.out.println("남은 재고 = " + updated.getStock());
+
+        Assertions.assertEquals(0, updated.getStock(), "모든 재고가 소진되어야 합니다.");
     }
 }

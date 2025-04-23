@@ -34,8 +34,7 @@ public class PointService {
 
         return new PointResult(point.getUserId(), point.getBalance());
     }
-    // 동시성 충동 발생시 재시도 3회
-    @Transactional
+    // 동시성 충동 발생시 재시도 1회
     public PointResult chargePointWithRetry(ChargePointCommand command) {
         int retry = 3;
 
@@ -55,6 +54,7 @@ public class PointService {
         throw new BusinessException(PointErrorCode.CONFLICT); // 이건 거의 안 터짐
     }
     // 포인트 충전
+    @Transactional
     public PointResult chargePoint(ChargePointCommand command) {
         PointEntity point = pointRepository.findByUserId(command.userId())
             .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));

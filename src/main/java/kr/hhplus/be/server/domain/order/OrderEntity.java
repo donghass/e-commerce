@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.product.ProductEntity;
@@ -68,7 +69,9 @@ public class OrderEntity {
     public static OrderEntity create(UserEntity user, UserCouponEntity userCoupon) {
         OrderEntity order = new OrderEntity();
         order.userId = user.getId();
-        order.userCouponId = userCoupon.getId();
+        if (userCoupon != null) {
+            order.userCouponId = userCoupon.getCouponId();
+        }
         return order;
     }
 

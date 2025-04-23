@@ -2,6 +2,7 @@ package kr.hhplus.be.server.infra.product;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.domain.product.ProductEntity;
@@ -43,9 +44,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public Optional<ProductEntity> findById(Long id) {
-
-        return jpaProductRepository.findById(id);
+    public Optional<ProductEntity> findById(Long productId) {
+        return jpaProductRepository.findById(productId);
     }
 
     @Override
@@ -60,8 +60,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public void save(ProductEntity product) {
+    public ProductEntity save(ProductEntity product) {
         jpaProductRepository.save(product);
+        return product;
     }
 
     @Override
@@ -73,6 +74,18 @@ public class ProductRepositoryImpl implements ProductRepository {
     public ProductEntity saveAndFlush(ProductEntity dummyProduct) {
 
         return jpaProductRepository.saveAndFlush(dummyProduct);
+    }
+
+    // 재고차감해야하므로 주문시 락 설정
+    @Override
+    public Optional<ProductEntity> findByIdLock(Long productId) {
+        ProductEntity result = queryFactory
+            .selectFrom(product)
+            .where(product.id.eq(productId))
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)  // 락 설정
+            .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 
 

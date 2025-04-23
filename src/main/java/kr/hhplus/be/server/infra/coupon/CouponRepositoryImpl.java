@@ -13,6 +13,7 @@ import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.QCouponEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,8 +26,7 @@ public class CouponRepositoryImpl implements CouponRepository {
 
     QCouponEntity coupon = QCouponEntity.couponEntity;
 
-    // 쿠폰 발급은 api 호출 시작시 쿠폰 테이블에 id로 조회하여 쿠폰 차감 등 발급 로직 진행하므로 일관성을 위해 api 첫 조회쿼리에 lock
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+
     @Override
     public Optional<CouponEntity> findById(Long couponId) {
         return jpaCouponRepository.findById(couponId);
@@ -68,5 +68,17 @@ public class CouponRepositoryImpl implements CouponRepository {
     public CouponEntity saveAndFlush(CouponEntity coupon) {
 
         return jpaCouponRepository.saveAndFlush(coupon);
+    }
+
+    // 쿠폰 발급은 api 호출 시작시 쿠폰 테이블에 id로 조회하여 쿠폰 차감 등 발급 로직 진행하므로 일관성을 위해 api 첫 조회쿼리에 lock
+    @Override
+    public Optional<CouponEntity> findByIdLock(Long couponId) {
+        CouponEntity result = queryFactory
+            .selectFrom(coupon)
+            .where(coupon.id.eq(couponId))
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)  // 락 설정
+            .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 }

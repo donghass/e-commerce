@@ -3,14 +3,21 @@ package kr.hhplus.be.server.coupon;
 import static org.instancio.Select.field;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 import kr.hhplus.be.server.api.coupon.CouponIssueRequest;
+import kr.hhplus.be.server.cleanUp.DbCleaner;
 import kr.hhplus.be.server.cleanUp.IntegerationTestSupport;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponEntity.DiscountType;
@@ -20,8 +27,10 @@ import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.product.BestSellerEntity;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.user.UserEntity;
+import kr.hhplus.be.server.domain.user.UserRepository;
 import org.instancio.Instancio;
 import org.instancio.Select;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +58,14 @@ public class CouponControllerIntegrationTest extends IntegerationTestSupport {
     private CouponRepository couponRepository;
     @Autowired
     private UserCouponRepository userCouponRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private DbCleaner dbCleaner;
 
     @Test
     @DisplayName("쿠폰 발급 성공")
@@ -110,5 +124,56 @@ public class CouponControllerIntegrationTest extends IntegerationTestSupport {
             .andExpect(jsonPath("$.code").value(200)) // code 필드 확인
             .andExpect(jsonPath("$.data.userId").value(userId)) // 응답 데이터 확인
             .andExpect(jsonPath("$.data.coupons").isArray()); // coupon 목록이 배열인지 확인
+    }
+
+    @Test
+    @DisplayName("쿠폰 발급 비관적락 동시성 테스트")
+    void issueCoupon_concurrent_withStockLimit() throws Exception {
+        dbCleaner.execute();
+
+        List<UserEntity> dummyUser = IntStream.range(0, 10) // 원하는 개수만큼 생성
+            .mapToObj(i -> Instancio.of(UserEntity.class)
+                .ignore(Select.field(UserEntity.class, "id"))
+                .create())
+            .toList();
+
+        List<UserEntity> savedUser = userRepository.saveAll(dummyUser);
+
+        List<CouponEntity> dummyCoupon = IntStream.range(0, 1) // 원하는 개수만큼 생성
+            .mapToObj(i -> Instancio.of(CouponEntity.class)
+                .ignore(Select.field(CouponEntity.class, "id"))
+                .set(Select.field(CouponEntity.class, "stock"), 10L)
+                .create())
+            .toList();
+
+        List<CouponEntity> savedCoupon = couponRepository.saveAll(dummyCoupon);
+        System.out.println("시작 쿠폰 = " +savedCoupon.get(0).getStock());
+
+        int threadCount = 10;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            int finalI = i;
+            executorService.submit(() -> {
+                try {
+                    CouponIssueRequest request = new CouponIssueRequest(savedUser.get(finalI).getId(),1L);
+
+                    mockMvc.perform(post("/api/v1/coupons/issue")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                        .andDo(print());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        Optional<CouponEntity> couponCount = couponRepository.findById(1L);
+        Assertions.assertEquals(0, couponCount.get().getStock(), "쿠폰 수량 일치하지 않습니다.");
     }
 }

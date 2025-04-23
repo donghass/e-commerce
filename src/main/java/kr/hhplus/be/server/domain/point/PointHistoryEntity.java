@@ -25,7 +25,7 @@ public class PointHistoryEntity {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY) //pk의 sequential 값을 자동 증가
         private Long id;
-        @Column(name = "pointId", nullable = false, unique = true)
+        @Column(name = "pointId", nullable = false)
         private Long pointId;
         @Column(nullable = false, name = "amount")
         private Long amount;
