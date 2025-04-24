@@ -42,7 +42,7 @@ public class LoggingFilter implements Filter {
         String paramsJson = objectMapper.writeValueAsString(parameters);
 
         // 요청 로깅
-        log.info("들어오는 요청: 메소드={}, URI={}, 파라미터={}",
+        log.info("들어오는 요청 : 메소드={}, URI={}, 파라미터={}",
             httpRequest.getMethod(),
             httpRequest.getRequestURI(),
             paramsJson);
@@ -53,7 +53,7 @@ public class LoggingFilter implements Filter {
         long duration = System.currentTimeMillis() - startTime;
 
         // 응답 로깅
-        log.info("나가는 응답: 상태코드={}, 소요시간={}ms",
+        log.info("나가는 응답 : 상태코드={}, 소요시간={}ms",
             httpResponse.getStatus(),
             duration);
     }//doFilter

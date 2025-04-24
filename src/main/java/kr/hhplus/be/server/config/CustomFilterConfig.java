@@ -24,7 +24,7 @@ public class CustomFilterConfig {
     public FilterRegistrationBean<LoggingFilter> loggingFilter(){
         FilterRegistrationBean<LoggingFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new LoggingFilter());
-        registrationBean.addUrlPatterns("/*");
+        registrationBean.addUrlPatterns("/*");  // 모든 요청 적용
         return registrationBean;
     }
 
