@@ -32,8 +32,8 @@ public class PointFacade {
         if (command.userId() <= 0) {throw new BusinessException(PointErrorCode.INVALID_USER_ID);}
         if (command.amount() <= 0) {throw new BusinessException(PointErrorCode.INVALID_CHARGE_AMOUNT);}
         if (command.amount() > 1000000) {throw new BusinessException(PointErrorCode.EXCEED_ONE_TIME_LIMIT);}
-
-        return pointServiceWithRedisson.chargePoint(command);
+        PointResult point = pointService.readPoint(command.userId());
+        return pointServiceWithRedisson.chargePoint(command,point.id());
     }
 
     // 결재
@@ -43,7 +43,7 @@ public class PointFacade {
         PointResult point = pointService.readPoint(order.getUserId());
 
         //pointService.UseAndHistoryPoint(order);
-        pointServiceWithRedisson.usePoint(order);
+        pointServiceWithRedisson.usePoint(order,point.id());
 
         orderService.updateOrderStatus(orderId);
 

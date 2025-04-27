@@ -5,6 +5,7 @@ import kr.hhplus.be.server.application.point.ChargePointCommand;
 import kr.hhplus.be.server.application.point.PointResult;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderEntity;
+import kr.hhplus.be.server.domain.point.PointEntity;
 import kr.hhplus.be.server.domain.point.PointService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -20,8 +21,8 @@ public class PointServiceWithRedisson {
     private final RedissonClient redissonClient;
     private final PointService pointService;
 
-    public PointResult chargePoint(ChargePointCommand command) {
-        String lockKey = "lockPoint:" + command.userId();
+    public PointResult chargePoint(ChargePointCommand command, Long pointId) {
+        String lockKey = "lockPoint:" + pointId;
         RLock lock = redissonClient.getLock(lockKey);
 
         boolean locked = false;
@@ -46,8 +47,8 @@ public class PointServiceWithRedisson {
         }
         return pointResult;
     }
-    public void usePoint(OrderEntity order) {
-        String lockKey = "lockPoint:" + order.getUserId();
+    public void usePoint(OrderEntity order, Long pointId) {
+        String lockKey = "lockPoint:" + pointId;
         RLock lock = redissonClient.getLock(lockKey);
 
         boolean locked = false;

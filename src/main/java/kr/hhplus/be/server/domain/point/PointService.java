@@ -32,7 +32,7 @@ public class PointService {
         PointEntity point = pointRepository.findByUserId(userId)
             .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));
 
-        return new PointResult(point.getUserId(), point.getBalance());
+        return new PointResult(point.getId(),point.getUserId(), point.getBalance());
     }
     // 레디스로 바꾸면 불필요
     // 동시성 충동 발생시 재시도 1회
