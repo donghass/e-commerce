@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCouponWithCouponDto;
+import kr.hhplus.be.server.domain.redis.CouponServiceWithRedisson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,9 +12,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor    // 생성자 자동 생성
 public class CouponFacade {
     private final CouponService couponService;
+    private final CouponServiceWithRedisson couponServiceWithRedisson;
 
     public void createCoupon(@Valid CouponIssueCommand command) {
-        couponService.createCoupon(command);
+        couponServiceWithRedisson.createCoupon(command);
     }
 
     public UserCouponListResult getUserCoupons(Long userId) {

@@ -21,6 +21,7 @@ public enum CouponErrorCode implements BaseResponseCode {
     COUPON_EXPIRED(409, "쿠폰 유효기간 초과", "쿠폰 유효기간이 지났거나 아직 유효하지 않습니다."),
     COUPON_OUT_OF_STOCK(409, "잔여 수량 0", "쿠폰이 모두 소진되었습니다."),
     COUPON_ALREADY_ISSUED(409, "이미 발급받음", "이미 발급받은 쿠폰입니다."),
+    COUPON_LOCK_FAILED(409, "쿠폰 발급을 위한 락 획득 실패", "쿠폰 발급을 위한 락 획득에 실패했습니다."),
     COUPON_ALREADY_USED(409, "쿠폰 이미 사용됨", "이미 사용된 쿠폰입니다.");
 
 

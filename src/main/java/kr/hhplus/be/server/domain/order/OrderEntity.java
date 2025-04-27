@@ -58,6 +58,9 @@ public class OrderEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderProductEntity> orderItems = new ArrayList<>();
 
+    public void updateStatus(PaymentStatus paymentStatus) {
+        this.status = paymentStatus;
+    }
 
 
     public enum PaymentStatus {

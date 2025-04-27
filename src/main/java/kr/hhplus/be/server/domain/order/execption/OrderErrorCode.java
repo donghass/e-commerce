@@ -16,6 +16,7 @@ public enum OrderErrorCode implements BaseResponseCode {
     // 404 - 리소스 없음
     USER_NOT_FOUND(404, "사용자 존재하지 않음", "사용자를 찾을 수 없습니다."),
     ORDER_NOT_FOUND(404, "주문 존재하지 않음", "주문을 찾을 수 없습니다."),
+    ORDERPRODUCT_NOT_FOUND(404, "주문상품 존재하지 않음", "주문상품을 찾을 수 없습니다."),
 
     // 409 - 비즈니스 충돌
     ORDER_STATUS_INVALID(409, "주문 상태가 결제 불가능", "결제가 불가능한 주문 상태입니다.");

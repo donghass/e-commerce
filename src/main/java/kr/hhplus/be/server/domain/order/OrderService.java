@@ -17,6 +17,7 @@ import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
+import kr.hhplus.be.server.domain.redis.OrderServiceWithRedisson;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.domain.user.execption.UserErrorCode;
@@ -34,8 +35,7 @@ public class OrderService {
     private final UserCouponRepository userCouponRepository;
     private final CouponRepository couponRepository;
     private final ConcurrencyService concurrencyService;
-
-
+    private final OrderServiceWithRedisson orderServiceWithRedisson;
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
     public Long createOrder(OrderCommand command) {
@@ -95,11 +95,14 @@ public class OrderService {
     }
 
     public void updateOrderStatus(Long orderId){
-        orderRepository.updateOrderStatus(orderId, PaymentStatus.PAID);
+//        orderRepository.updateOrderStatus(orderId, PaymentStatus.PAID);
+        OrderEntity order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        order.updateStatus(PaymentStatus.PAID);
+        orderRepository.save(order);
     }
 
     // 5분 주기로 주문 생성 5분 지난 주문건 취소 스케줄러
-    @Transactional
     public void expireOldUnpaidOrders() {
         LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
         List<OrderEntity> expiredOrders = orderRepository.findNotPaidOrdersOlderThan(expiredTime);
@@ -107,21 +110,33 @@ public class OrderService {
         // 주문에서는 쿠폰 금액 차감만 하고 쿠폰 사용처리는 결제때 구현으로 변경
         // 주문상품 별 갯수 조회하여 상품 재고 원복
         for (OrderEntity order : expiredOrders) {
-            orderRepository.updateOrderStatus(order.getId(), PaymentStatus.EXPIRED);
+//            orderRepository.updateOrderStatus(order.getId(), PaymentStatus.EXPIRED);
+            OrderProductEntity orderProduct = orderRepository.findByOrderId(order.getId())
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDERPRODUCT_NOT_FOUND));
+//          락 걸기
+            orderServiceWithRedisson.expireSingleOrder(order,orderProduct);
 
-            if(order.getUserCouponId() != null) {
-                UserCouponEntity userCoupon = userCouponRepository.findById(order.getUserCouponId())
-                    .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
-                userCoupon.status(userCoupon, false);
-
-                userCouponRepository.save(userCoupon);
-            }
-
-            Optional<OrderProductEntity> orderProduct = orderRepository.findByOrderId(order.getId());
-            ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.get().getProductId());
-
-            product.plusStock(orderProduct.get().getQuantity());
-            productRepository.save(product);
         }
+    }
+    @Transactional
+    public void expireSingleOrder(OrderEntity order, OrderProductEntity orderProduct) {
+
+        order.updateStatus(PaymentStatus.EXPIRED);
+        orderRepository.save(order);
+
+        if(order.getUserCouponId() != null) {
+            UserCouponEntity userCoupon = userCouponRepository.findById(order.getUserCouponId())
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
+            userCoupon.status(userCoupon, false);
+
+            userCouponRepository.save(userCoupon);
+        }
+
+//            ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.get().getProductId());
+        ProductEntity product = productRepository.findById(orderProduct.getProductId())
+            .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
+
+        product.plusStock(orderProduct.getQuantity());
+        productRepository.save(product);
     }
 }

@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.point.PointService;
 import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.product.ProductService;
+import kr.hhplus.be.server.domain.redis.PointServiceWithRedisson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class PointFacade {
     private final OrderService orderService;
     private final ProductService productService;
     private final CouponService couponService;
+    private final PointServiceWithRedisson pointServiceWithRedisson;
 
     public PointResult readPoint(Long userId) {
         if (userId <= 0) {
@@ -31,7 +33,7 @@ public class PointFacade {
         if (command.amount() <= 0) {throw new BusinessException(PointErrorCode.INVALID_CHARGE_AMOUNT);}
         if (command.amount() > 1000000) {throw new BusinessException(PointErrorCode.EXCEED_ONE_TIME_LIMIT);}
 
-        return pointService.chargePointWithRetry(command);
+        return pointServiceWithRedisson.chargePoint(command);
     }
 
     // 결재
@@ -40,7 +42,8 @@ public class PointFacade {
         OrderEntity order = orderService.readOrder(orderId);
         PointResult point = pointService.readPoint(order.getUserId());
 
-        pointService.UseAndHistoryPoint(order);
+        //pointService.UseAndHistoryPoint(order);
+        pointServiceWithRedisson.usePoint(order);
 
         orderService.updateOrderStatus(orderId);
 

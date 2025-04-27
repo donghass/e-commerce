@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
 import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
 import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponEntity.DiscountType;
@@ -36,6 +37,8 @@ public class CouponTest {
 
     @InjectMocks
     private CouponService couponService;
+    @Mock
+    private ConcurrencyService concurrencyService;
 
     @Test
     void useCoupon() {
@@ -82,15 +85,18 @@ public class CouponTest {
         CouponIssueCommand command = new CouponIssueCommand(userId, couponId);
 
         // Mocking repository calls
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
+//        when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
         when(userCouponRepository.findByCouponId(couponId)).thenReturn(Optional.empty());
         doNothing().when(userCouponRepository).save(any(UserCouponEntity.class));  // void 메서드에는 doNothing() 사용
+        //      ConcurrencyService mock 세팅
+        when(concurrencyService.couponDecreaseStock(couponId)).thenReturn(mockCoupon);
 
         // Act
         couponService.createCoupon(command);
 
         // Assert
-        verify(couponRepository).findById(couponId);  // coupon 조회
+//        verify(couponRepository).findById(couponId);  // coupon 조회
+        verify(concurrencyService).couponDecreaseStock(couponId);  // coupon 조회
         verify(userCouponRepository).findByCouponId(couponId);  // 이미 발급된 쿠폰이 있는지 확인
         verify(userCouponRepository).save(any(UserCouponEntity.class));  // 사용자 쿠폰 저장
     }

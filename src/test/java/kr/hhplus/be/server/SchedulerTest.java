@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.OrderProductEntity;
@@ -34,6 +35,9 @@ class SchedulerTest {
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private ConcurrencyService concurrencyService;
+
     @Test
     void expiredOrder_rollBack() {
         // Given
@@ -47,7 +51,6 @@ class SchedulerTest {
         OrderEntity expiredOrder = OrderEntity.builder()
             .id(orderId)
             .userId(1L)
-            .userCouponId(1L)
             .totalAmount(1000L)
             .status(PaymentStatus.EXPIRED)
             .build();
@@ -67,10 +70,10 @@ class SchedulerTest {
             LocalDateTime.now(), LocalDateTime.now());
 
         // Mock 설정
-        when(orderRepository.findNotPaidOrdersOlderThan(expiredTime)).thenReturn(List.of(expiredOrder));
+        when(orderRepository.findNotPaidOrdersOlderThan(any())).thenReturn(List.of(expiredOrder));
         when(orderRepository.findByOrderId(orderId)).thenReturn(Optional.of(orderProduct));
-        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-
+//      ConcurrencyService mock 세팅
+        when(concurrencyService.productDecreaseStock(productId)).thenReturn(product);
         // When
         orderService.expireOldUnpaidOrders();
 

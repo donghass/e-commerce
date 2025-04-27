@@ -5,6 +5,8 @@ import kr.hhplus.be.server.domain.coupon.CouponDiscountResult;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.product.ProductService;
+import kr.hhplus.be.server.domain.redis.CouponServiceWithRedisson;
+import kr.hhplus.be.server.domain.redis.OrderServiceWithRedisson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +17,7 @@ public class OrderFacade {
     private final OrderService orderService;
     private final ProductService productService;
     private final CouponService couponService;
-
+    private final OrderServiceWithRedisson OrderServiceWithRedisson;
 
 
     // 주문
@@ -29,7 +31,8 @@ public class OrderFacade {
 //            discount = Optional.ofNullable(couponService.useCoupon(command.userCouponId()));
 //        }
         // 주문 생성 및 재고차감
-        Long orderId = orderService.createOrder(command);
+        //Long orderId = orderService.createOrder(command);
+        Long orderId = OrderServiceWithRedisson.createOrder(command);
         return new OrderResult(orderId);
     }
 

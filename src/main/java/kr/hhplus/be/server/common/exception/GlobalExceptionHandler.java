@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.common.exception;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import kr.hhplus.be.server.common.response.BaseResponseCode;
 import kr.hhplus.be.server.common.response.CommonResponse;
 import kr.hhplus.be.server.common.response.ResponseCode;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
 @RestControllerAdvice
+@Hidden
 public class GlobalExceptionHandler {
 
     /**

@@ -3,11 +3,9 @@ package kr.hhplus.be.server.domain.coupon;
 import java.time.LocalDateTime;
 import java.util.List;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
-import kr.hhplus.be.server.application.coupon.UserCouponListResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
-import kr.hhplus.be.server.domain.product.ProductEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,13 +37,14 @@ public class CouponService {
         return new CouponDiscountResult(coupon.getDiscountValue(),coupon.getDiscountType());
     }
 
-    // couponRepository.findById(쿠폰 조회시점에) 에 비관적 락 걸어서 읽기,쓰기 일관성
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
 //        CouponEntity coupon = couponRepository.findByIdLock(command.couponId())
 //            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 
-        CouponEntity coupon = concurrencyService.couponDecreaseStock(command.couponId());
+//        CouponEntity coupon = concurrencyService.couponDecreaseStock(command.couponId());
+        CouponEntity coupon = couponRepository.findById(command.couponId())
+            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
         coupon.couponUpdate();
         couponRepository.save(coupon);
 

@@ -22,12 +22,15 @@ spring:
       hibernate.jdbc.time_zone: UTC
       hibernate:
         format_sql: false
+  redis:
+    host: redis  # docker-compose로 연결할 때는 redis (localhost 아님)
+    port: 6379
 
 ---
 spring.config.activate.on-profile: local, test
 
 spring:
   datasource:
-    url: jdbc:mysql://mysql:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
     username: application
     password: application
