@@ -69,7 +69,7 @@ public class PointService {
 
         pointHistoryRepository.save(pointHistory);
 
-        return new PointResult(point.getUserId(), point.getBalance());
+        return new PointResult(point.getId(), point.getUserId(), point.getBalance());
     }
 
     // 포인트 사용

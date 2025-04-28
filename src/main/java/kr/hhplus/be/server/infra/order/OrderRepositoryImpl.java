@@ -55,7 +55,8 @@ public class OrderRepositoryImpl implements OrderRepository {
             .where(
                 order.createdAt.before(LocalDateTime.now().minusMinutes(5)),
                 order.status.eq(PaymentStatus.NOT_PAID)
-            ).setLockMode(LockModeType.PESSIMISTIC_WRITE)  // 락 설정
+            )
+//            .setLockMode(LockModeType.PESSIMISTIC_WRITE)  // 락 설정
             .fetch();
     }
 // 사용안함

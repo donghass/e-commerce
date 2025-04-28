@@ -68,7 +68,7 @@ public class PointTest {
         PointEntity mockPointEntity = PointEntity.save(userId, 1000L); // 생성자 또는 팩토리로 가정
 
         // chargeAmount 만큼 충전될 것임
-        PointResult expectedPointDto = new PointResult(userId, 1500L);  // 1000 + 500
+        PointResult expectedPointDto = new PointResult(1L,userId, 1500L);  // 1000 + 500
 
         // repository가 반환할 mock 설정
         when(pointRepository.findByUserId(userId)).thenReturn(Optional.of(mockPointEntity));

@@ -18,7 +18,7 @@ public class CouponServiceWithRedisson {
 
     public void createCoupon(CouponIssueCommand command) {
         String lockKey = "lockCoupon:" + command.couponId();
-        RLock lock = redissonClient.getLock(lockKey);
+        RLock lock = redissonClient.getFairLock(lockKey);   // FIFO 대기열 선착순
 
         boolean locked = false;
         try {

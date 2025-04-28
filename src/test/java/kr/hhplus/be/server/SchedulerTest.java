@@ -16,6 +16,7 @@ import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
+import kr.hhplus.be.server.scheduler.OrderScheduler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +38,9 @@ class SchedulerTest {
 
     @Mock
     private ConcurrencyService concurrencyService;
+
+    @Mock
+    private OrderScheduler orderScheduler;
 
     @Test
     void expiredOrder_rollBack() {
@@ -75,7 +79,7 @@ class SchedulerTest {
 //      ConcurrencyService mock 세팅
         when(concurrencyService.productDecreaseStock(productId)).thenReturn(product);
         // When
-        orderService.expireOldUnpaidOrders();
+        orderScheduler.checkAndExpireOrders();
 
         // Then
         verify(orderRepository).updateOrderStatus(orderId, PaymentStatus.EXPIRED); // 상태 변경

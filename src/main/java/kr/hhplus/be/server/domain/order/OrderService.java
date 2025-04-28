@@ -34,8 +34,6 @@ public class OrderService {
     private final UserRepository userRepository;
     private final UserCouponRepository userCouponRepository;
     private final CouponRepository couponRepository;
-    private final ConcurrencyService concurrencyService;
-    private final OrderServiceWithRedisson orderServiceWithRedisson;
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
     public Long createOrder(OrderCommand command) {
@@ -64,7 +62,8 @@ public class OrderService {
 //            ProductEntity product = productRepository.findByIdLock(productId)
 //                .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 //              ProductEntity product = ConcurrencyRepository.findById(productId);
-            ProductEntity product = concurrencyService.productDecreaseStock(productId);
+            ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 
             // 재고 차감
             product.updateStock(quantity);
@@ -103,21 +102,21 @@ public class OrderService {
     }
 
     // 5분 주기로 주문 생성 5분 지난 주문건 취소 스케줄러
-    public void expireOldUnpaidOrders() {
-        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
-        List<OrderEntity> expiredOrders = orderRepository.findNotPaidOrdersOlderThan(expiredTime);
-
-        // 주문에서는 쿠폰 금액 차감만 하고 쿠폰 사용처리는 결제때 구현으로 변경
-        // 주문상품 별 갯수 조회하여 상품 재고 원복
-        for (OrderEntity order : expiredOrders) {
-//            orderRepository.updateOrderStatus(order.getId(), PaymentStatus.EXPIRED);
-            OrderProductEntity orderProduct = orderRepository.findByOrderId(order.getId())
-                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDERPRODUCT_NOT_FOUND));
-//          락 걸기
-            orderServiceWithRedisson.expireSingleOrder(order,orderProduct);
-
-        }
-    }
+//    public void expireOldUnpaidOrders() {
+//        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
+//        List<OrderEntity> expiredOrders = orderRepository.findNotPaidOrdersOlderThan(expiredTime);
+//
+//        // 주문에서는 쿠폰 금액 차감만 하고 쿠폰 사용처리는 결제때 구현으로 변경
+//        // 주문상품 별 갯수 조회하여 상품 재고 원복
+//        for (OrderEntity order : expiredOrders) {
+////            orderRepository.updateOrderStatus(order.getId(), PaymentStatus.EXPIRED);
+//            OrderProductEntity orderProduct = orderRepository.findByOrderId(order.getId())
+//                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDERPRODUCT_NOT_FOUND));
+////          락 걸기
+//            orderServiceWithRedisson.expireSingleOrder(order,orderProduct);
+//
+//        }
+//    }
     @Transactional
     public void expireSingleOrder(OrderEntity order, OrderProductEntity orderProduct) {
 

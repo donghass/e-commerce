@@ -61,7 +61,6 @@ public class OrderServiceWithRedisson {
         String lockKey = "lockProduct:" + orderProduct.getProductId();
         RLock lock = redissonClient.getLock(lockKey);
 
-        ProductEntity product;
         boolean locked = false;
         try {
             locked = lock.tryLock(5, 3, TimeUnit.SECONDS);
