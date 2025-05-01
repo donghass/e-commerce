@@ -6,6 +6,7 @@ import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
+import kr.hhplus.be.server.suportAop.spinLock.SpinLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,15 +37,15 @@ public class CouponService {
         // 할인 금액, 할인 타입 반환
         return new CouponDiscountResult(coupon.getDiscountValue(),coupon.getDiscountType());
     }
-
+    @SpinLock(key = "'coupon:' + #command.couponId()")       // @Order(Ordered.HIGHEST_PRECEDENCE) = aop 에 생성
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
 //        CouponEntity coupon = couponRepository.findByIdLock(command.couponId())
 //            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 
-//        CouponEntity coupon = concurrencyService.couponDecreaseStock(command.couponId());
-        CouponEntity coupon = couponRepository.findById(command.couponId())
-            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
+        CouponEntity coupon = concurrencyService.couponDecreaseStock(command.couponId());
+//        CouponEntity coupon = couponRepository.findById(command.couponId())
+//            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
         coupon.couponUpdate();
         couponRepository.save(coupon);
 
@@ -64,5 +65,13 @@ public class CouponService {
         return userCouponList;
     }
 
+    @Transactional
+    public void userCouponStatus(Long userCouponId, boolean isUsed) {
+            UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
 
+            userCoupon.status(userCoupon, isUsed);
+
+            userCouponRepository.save(userCoupon);
+    }
 }
