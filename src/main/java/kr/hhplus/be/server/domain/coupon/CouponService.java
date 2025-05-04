@@ -9,7 +9,10 @@ import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import kr.hhplus.be.server.suportAop.spinLock.SpinLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -22,21 +25,6 @@ public class CouponService {
 
     private final ConcurrencyService concurrencyService;
 
-// 쿠폰 사용 // 리팩토링해서 사용 x
-    public CouponDiscountResult useCoupon(Long userCouponId) {
-
-        UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
-            .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
-
-        CouponEntity coupon = couponRepository.findById(userCoupon.getCouponId())
-            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
-
-        // 쿠폰 검증
-        userCoupon.validateCoupon(userCoupon);
-
-        // 할인 금액, 할인 타입 반환
-        return new CouponDiscountResult(coupon.getDiscountValue(),coupon.getDiscountType());
-    }
     @SpinLock(key = "'coupon:' + #command.couponId()")       // @Order(Ordered.HIGHEST_PRECEDENCE) = aop 에 생성
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
@@ -59,12 +47,15 @@ public class CouponService {
         userCouponRepository.save(userCoupon);
     }
 
+    @Cacheable(value = "userCoupons", key = "'userCoupon:' + #userId", unless = "#result == null")
     public List<UserCouponWithCouponDto> userCouponList(Long userId) {
         List<UserCouponWithCouponDto> userCouponList = userCouponRepository.findByUserCouponList(userId);
 
         return userCouponList;
     }
 
+    //주문 상태 변경(결재,주문시간만료 등) 캐시 적용
+    @CacheEvict(value = "userCoupons", key = "'userCoupon:' + #userId")
     @Transactional
     public void userCouponStatus(Long userCouponId, boolean isUsed) {
             UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
@@ -73,5 +64,38 @@ public class CouponService {
             userCoupon.status(userCoupon, isUsed);
 
             userCouponRepository.save(userCoupon);
+    }
+
+
+    //주문 생성 쿠폰 적용
+    @CacheEvict(value = "userCoupons", key = "'userCoupon:' + #userId")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public CouponApplyResult applyCoupon(Long userCouponId) {
+        if (userCouponId == null) return null;
+
+        UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
+            .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
+
+        CouponEntity coupon = couponRepository.findById(userCoupon.getCouponId())
+            .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        userCoupon.status(userCoupon, true);
+        userCouponRepository.save(userCoupon);
+
+        return new CouponApplyResult(userCoupon, coupon);
+    }
+    //주문 생성 쿠폰 보상로직
+    @CacheEvict(value = "userCoupons", key = "'userCoupon:' + #userId")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void rollbackCoupon(Long userCouponId) {
+        if (userCouponId == null) return;
+        try {
+            UserCouponEntity userCoupon = userCouponRepository.findById(userCouponId)
+                .orElseThrow();
+            userCoupon.status(userCoupon, false);
+            userCouponRepository.save(userCoupon);
+        } catch (Exception e) {
+            log.error("보상 실패 - 쿠폰 복구 실패", e);
+        }
     }
 }
