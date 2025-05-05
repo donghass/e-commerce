@@ -22,11 +22,12 @@ public class BestSellerRepositoryImpl implements BestSellerRepository {
     public List<BestSellerEntity> findAll() {
         return queryFactory
             .selectFrom(bestSeller)
+            .orderBy(bestSeller.sales.desc())  // sales가 많은 순으로 내림차순 정렬
             .fetch();
     }
 
     @Override
-    public void saveAll(List<BestSellerEntity> dummyList) {
-        jpaBestSellerRepository.saveAll(dummyList);
+    public void saveAllAndFlush(List<BestSellerEntity> dummyList) {
+        jpaBestSellerRepository.saveAllAndFlush(dummyList);
     }
 }

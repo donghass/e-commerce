@@ -28,4 +28,9 @@ public class UserRepositoryImpl implements UserRepository {
         return jpaUserRepository.saveAll(dummyUser);
     }
 
+    @Override
+    public UserEntity save(UserEntity user) {
+        return jpaUserRepository.save(user);
+    }
+
 }

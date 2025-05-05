@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.order;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -55,8 +56,8 @@ public class OrderEntity {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Builder.Default
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderProductEntity> orderItems = new ArrayList<>();
+    @OneToMany(mappedBy = "order", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<OrderProductEntity> orderProduct = new ArrayList<>();
 
     public void updateStatus(PaymentStatus paymentStatus) {
         this.status = paymentStatus;
@@ -85,7 +86,7 @@ public class OrderEntity {
             product.getId(), this, amount, quantity
         );
 
-        this.orderItems.add(item);
+        this.orderProduct.add(item);
         this.totalAmount += amount;
     }
     public void discountApply(CouponEntity coupon) {

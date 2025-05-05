@@ -67,6 +67,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
     @Test
     @DisplayName("주문 생성 성공")
     void createOrder_success() throws Exception {
+        // given
         // 사용자 생성
         List<UserEntity> dummyUser = IntStream.range(0, 5) // 원하는 개수만큼 생성
             .mapToObj(i -> Instancio.of(UserEntity.class)
@@ -126,7 +127,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
         orderItems.add(item2);
 
         ReflectionTestUtils.setField(orderRequest, "orderItems", orderItems);
-
+//      when
         // 🔸 요청 실행 및 검증
         mockMvc.perform(post("/api/v1/orders")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,6 +136,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
             .andExpect(jsonPath("$.code").value(200))
             .andExpect(jsonPath("$.data.orderId").isNumber());
 
+        // then
         // 🔸 후속 검증 (재고 차감 확인)
         ProductEntity updated = productRepository.findById(dummyProducts.get(0).getId()).orElseThrow();
         assertThat(updated.getStock()).isEqualTo(7L); // 10 - 2 = 8
@@ -143,6 +145,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
     @Test
     @DisplayName("주문 재고 차감 동시성 테스트")
     void createOrder_concurrent_stockLimit() throws Exception {
+        //given
         // 10명의 사용자 생성
         List<UserEntity> users = IntStream.range(0, 10)
             .mapToObj(i -> Instancio.of(UserEntity.class)
@@ -157,7 +160,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
             .set(Select.field(ProductEntity.class, "stock"), 10L)
             .create();
         ProductEntity savedProduct = productRepository.save(product);
-
+//      when
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -199,7 +202,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
         ProductEntity updated = productRepository.findById(savedProduct.getId()).orElseThrow();
 
         System.out.println("남은 재고 = " + updated.getStock());
-
+        //then
         Assertions.assertEquals(0, updated.getStock(), "모든 재고가 소진되어야 합니다.");
     }
 }

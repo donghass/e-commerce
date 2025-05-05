@@ -42,7 +42,7 @@ public class ProductController implements ProductControllerDocs {
     // 인기 상품 5개 조회 API
     @GetMapping("/best")
     public ResponseEntity<CommonResponse<List<BestSellerResponse>>> getBestSeller() {
-        List<BestSellerResult> bestSeller = productFacade.BestSellerList();
+        List<BestSellerResult> bestSeller = productFacade.bestSellerList();
 
         List<BestSellerResponse> response = bestSeller.stream()
             .map(BestSellerResponse::from)

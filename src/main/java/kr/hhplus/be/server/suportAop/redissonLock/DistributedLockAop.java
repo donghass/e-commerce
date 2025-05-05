@@ -23,12 +23,12 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class DistributedLockAop {
 
-    private static final String REDISSON_LOCK_PREFIX = "LOCK:";
+    private static final String REDISSON_LOCK_PREFIX = "lock:";
 
     private final RedissonClient redissonClient;
     private final AopForTransaction aopForTransaction;
 
-    @Around("@annotation(kr.hhplus.be.server.suportAop.redissonLock.distributedLock)")
+    @Around("@annotation(kr.hhplus.be.server.suportAop.redissonLock.DistributedLock)")
     public Object lock(final ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
@@ -38,19 +38,20 @@ public class DistributedLockAop {
         RLock rLock = redissonClient.getLock(key);
 
         try {
-            boolean available = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
-            if (!available) {
+            boolean locked = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
+            if (!locked) {
+                log.info("이미 락이 생성되어있습니다.");
                 return false;
             }
 
-            return aopForTransaction.proceed(joinPoint);
+            return joinPoint.proceed();
         } catch (InterruptedException e) {
             throw new InterruptedException();
         } finally {
             try {
                 rLock.unlock();
             } catch (IllegalMonitorStateException e) {
-                log.info("Redisson Lock Already UnLock {} {}",
+                log.info("이미 락이 해제되어있습니다. : {} {}",
                     kv("serviceName", method.getName()),
                     kv("key", key)
                 );

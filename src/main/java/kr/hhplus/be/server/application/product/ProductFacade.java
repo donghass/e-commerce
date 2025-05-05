@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.product;
 
 import java.util.List;
+import kr.hhplus.be.server.domain.product.BestSellerReadType;
 import kr.hhplus.be.server.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,8 +17,8 @@ public class ProductFacade {
         return productService.readProductList(PageRequest.of(page, size));
     }
 
-    public List<BestSellerResult> BestSellerList() {
+    public List<BestSellerResult> bestSellerList() {
 
-        return productService.bestSellerList();
+        return productService.bestSellerList(BestSellerReadType.MANUAL);
     }
 }

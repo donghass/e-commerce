@@ -1,14 +1,17 @@
 package kr.hhplus.be.server.domain.order;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
+import kr.hhplus.be.server.domain.coupon.CouponApplyResult;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
+import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
@@ -16,17 +19,19 @@ import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
-import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
-import kr.hhplus.be.server.domain.redis.OrderServiceWithRedisson;
+import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.domain.user.execption.UserErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -34,60 +39,70 @@ public class OrderService {
     private final UserRepository userRepository;
     private final UserCouponRepository userCouponRepository;
     private final CouponRepository couponRepository;
+    private final ConcurrencyService concurrencyService;
+    private final ProductService productService;
+    private final CouponService couponService;
+
+    private OrderEntity currentOrder; // 보상용 저장
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
+    // 재고차감 -> 쿠폰적용 -> 주문 -> 주문상품
     public Long createOrder(OrderCommand command) {
-
-        // 유저 검증
         UserEntity user = userRepository.findById(command.userId())
             .orElseThrow(() -> new BusinessException(UserErrorCode.INVALID_USER_ID));
 
-        UserCouponEntity userCoupon = null;
-        CouponEntity coupon = null;
-        if (command.userCouponId() != null) {
-            userCoupon = userCouponRepository.findById(command.userCouponId())
-                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
+        List<OrderProduct> sortedItems = command.orderItem().stream()
+            .sorted(Comparator.comparing(OrderProduct::productId))
+            .collect(Collectors.toList());
 
-            coupon = couponRepository.findById((userCoupon.getCouponId()))
-                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
-        }
-        // 도메인 객체 생성
-        OrderEntity order = OrderEntity.create(user, userCoupon);
-        orderRepository.save(order);
-        for (OrderProduct op : command.orderItem()) {
-            Long productId = op.productId();
-            Long quantity = op.quantity();
+        List<ProductEntity> products = new ArrayList<>();
+        CouponApplyResult couponResult;
+        Long orderId;
 
-            // 상품 조회
-//            ProductEntity product = productRepository.findByIdLock(productId)
-//                .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
-//              ProductEntity product = ConcurrencyRepository.findById(productId);
-            ProductEntity product = productRepository.findById(productId)
-                .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
-
-            // 재고 차감
-            product.updateStock(quantity);
-
-            productRepository.save(product);
-
-            // 주문 상품 추가 및 주문 총액 계산
-            order.addOrderProduct(product, quantity);
-
-            orderRepository.saveAll(order.getOrderItems());
-        }
-        if(coupon != null) {
-            order.discountApply(coupon);
-            // 쿠폰 적용
-            userCoupon.status(userCoupon, true);
-            userCouponRepository.save(userCoupon);
+        try {
+            products = productService.decreaseStock(sortedItems);
+            couponResult = couponService.applyCoupon(command.userCouponId());
+            orderId = createOrderAndOrderProduct(user, sortedItems, products, couponResult);
+        } catch (Exception e) {
+            log.error("주문 실패, 보상 시작", e);
+            productService.rollbackStock(sortedItems, products);
+            couponService.rollbackCoupon(command.userCouponId());
+            rollbackOrder();
+            throw new RuntimeException("주문 실패 및 보상 완료", e);
         }
 
-        // 주문 생성
+        return orderId;
+    }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private Long createOrderAndOrderProduct(UserEntity user, List<OrderProduct> items, List<ProductEntity> products, CouponApplyResult couponResult) {
+        OrderEntity order = OrderEntity.create(user, couponResult != null ? couponResult.userCoupon() : null);
+
+        for (int i = 0; i < items.size(); i++) {
+            order.addOrderProduct(products.get(i), items.get(i).quantity());
+        }
+
+        if (couponResult != null) {
+            order.discountApply(couponResult.coupon());
+        }
+
         OrderEntity saved = orderRepository.save(order);
-
+        orderRepository.saveAll(order.getOrderProduct());
+        this.currentOrder = saved;
         return saved.getId();
     }
-// 주문 조회
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void rollbackOrder() {
+        if (currentOrder != null) {
+            try {
+                orderRepository.delete(currentOrder);
+            } catch (Exception e) {
+                log.error("보상 실패 - 주문 삭제 실패", e);
+            }
+        }
+    }
+
+
+    // 주문 조회
     public OrderEntity readOrder(Long orderId){
         return orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(
             OrderErrorCode.ORDER_NOT_FOUND));
@@ -100,42 +115,10 @@ public class OrderService {
         order.updateStatus(PaymentStatus.PAID);
         orderRepository.save(order);
     }
-
-    // 5분 주기로 주문 생성 5분 지난 주문건 취소 스케줄러
-//    public void expireOldUnpaidOrders() {
-//        LocalDateTime expiredTime = LocalDateTime.now().minusMinutes(5);
-//        List<OrderEntity> expiredOrders = orderRepository.findNotPaidOrdersOlderThan(expiredTime);
-//
-//        // 주문에서는 쿠폰 금액 차감만 하고 쿠폰 사용처리는 결제때 구현으로 변경
-//        // 주문상품 별 갯수 조회하여 상품 재고 원복
-//        for (OrderEntity order : expiredOrders) {
-////            orderRepository.updateOrderStatus(order.getId(), PaymentStatus.EXPIRED);
-//            OrderProductEntity orderProduct = orderRepository.findByOrderId(order.getId())
-//                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDERPRODUCT_NOT_FOUND));
-////          락 걸기
-//            orderServiceWithRedisson.expireSingleOrder(order,orderProduct);
-//
-//        }
-//    }
     @Transactional
-    public void expireSingleOrder(OrderEntity order, OrderProductEntity orderProduct) {
-
-        order.updateStatus(PaymentStatus.EXPIRED);
+    public void expireOrder(OrderEntity order, PaymentStatus status) {
+        order.updateStatus(status);
         orderRepository.save(order);
-
-        if(order.getUserCouponId() != null) {
-            UserCouponEntity userCoupon = userCouponRepository.findById(order.getUserCouponId())
-                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_OWNED));
-            userCoupon.status(userCoupon, false);
-
-            userCouponRepository.save(userCoupon);
-        }
-
-//            ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.get().getProductId());
-        ProductEntity product = productRepository.findById(orderProduct.getProductId())
-            .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
-
-        product.plusStock(orderProduct.getQuantity());
-        productRepository.save(product);
     }
+
 }

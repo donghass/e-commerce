@@ -49,7 +49,7 @@ public class ProductEntity {
         if (quantity > this.stock) {
             throw new BusinessException(ProductErrorCode.INVALID_QUANTITY);
         }
-        // 재고 차감
+        // 재고 증가
         this.stock += quantity;
     }
 

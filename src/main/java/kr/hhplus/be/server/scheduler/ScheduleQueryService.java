@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class OrderQueryService {
+public class ScheduleQueryService {
     private final OrderRepository orderRepository;
 
     @Transactional(readOnly = true)
@@ -24,9 +24,9 @@ public class OrderQueryService {
 
     // 조회 트랜잭션 분리
     @Transactional(readOnly = true)
-    public OrderProductEntity findByOrder(Long orderId) {
-        return orderRepository.findByOrderId(orderId)
-            .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDERPRODUCT_NOT_FOUND));
+    public List<OrderProductEntity> findByOrder(Long orderId) {
+        return orderRepository.findByOrderId(orderId);
+//            .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDERPRODUCT_NOT_FOUND));
     }
 
 }

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
@@ -62,12 +63,16 @@ class SchedulerTest {
         ReflectionTestUtils.setField(expiredOrder, "id", orderId);
 
         // 주문 상품
+        List<OrderProductEntity> orderProducts ;
         OrderProductEntity orderProduct = OrderProductEntity.builder()
             .productId(productId)
             .order(expiredOrder)
             .amount(1000L)
             .quantity(quantity)
             .build();
+        
+        orderProducts = List.of(orderProduct);
+
 
         // 상품
         ProductEntity product = new ProductEntity(productId, "상품A", "옷", 1000L, currentStock,
@@ -75,7 +80,7 @@ class SchedulerTest {
 
         // Mock 설정
         when(orderRepository.findNotPaidOrdersOlderThan(any())).thenReturn(List.of(expiredOrder));
-        when(orderRepository.findByOrderId(orderId)).thenReturn(Optional.of(orderProduct));
+        when(orderRepository.findByOrderId(orderId)).thenReturn(orderProducts);
 //      ConcurrencyService mock 세팅
         when(concurrencyService.productDecreaseStock(productId)).thenReturn(product);
         // When

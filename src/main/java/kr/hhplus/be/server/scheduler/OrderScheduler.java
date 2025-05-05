@@ -22,8 +22,6 @@ public class OrderScheduler {
         List<OrderEntity> expiredOrders = scheduleQueryService.findExpiredOrders();
         for (OrderEntity order : expiredOrders) {
             List<OrderProductEntity> orderProduct = scheduleQueryService.findByOrder(order.getId());
-//          락 걸기
-//            orderServiceWithRedisson.expireSingleOrder(order,orderProduct);
             orderFacade.expireSingleOrder(order, orderProduct);
         }
     }

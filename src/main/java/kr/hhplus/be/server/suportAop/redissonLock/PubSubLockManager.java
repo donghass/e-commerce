@@ -21,8 +21,8 @@ public class PubSubLockManager {
         long end = System.currentTimeMillis() + timeoutMs;
 
         while (System.currentTimeMillis() < end) {
-            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "locked", Duration.ofSeconds(10));
-            if (Boolean.TRUE.equals(success)) {
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "locked", Duration.ofSeconds(10));   //key 가 없으면 10초동안 키 저장
+            if (success) {
                 return true;
             }
 

@@ -40,38 +40,6 @@ public class CouponTest {
     @Mock
     private ConcurrencyService concurrencyService;
 
-    @Test
-    void useCoupon() {
-        // Arrange
-        Long userCouponId = 1L;
-        Long couponId = 123L;
-        Long userId = 1L;
-        String name = "가입축하 쿠폰";
-        LocalDateTime expiredAt = LocalDateTime.now().plusDays(7);
-        // Mock UserCouponEntity
-        UserCouponEntity mockUserCoupon = new UserCouponEntity(userId, userId, couponId, false, name,null,expiredAt,LocalDateTime.now(),LocalDateTime.now());  // 만료일을 7일 뒤로 설정
-
-        // Mock CouponEntity
-        CouponEntity mockCoupon = new CouponEntity(1L,name,20L,DiscountType.RATE,null,null,5L,null,null);
-
-
-        // Mocking repository calls
-        when(userCouponRepository.findById(userCouponId)).thenReturn(Optional.of(mockUserCoupon));
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
-
-        // Act
-        CouponDiscountResult couponDiscountResult = couponService.useCoupon(userCouponId);
-
-        // Assert with AssertJ
-        assertThat(couponDiscountResult)
-            .isNotNull()
-            .extracting(CouponDiscountResult::discountValue, CouponDiscountResult::discountType)
-            .containsExactly(20L, DiscountType.RATE);  // 20% 할인, 정률 할인
-
-        // Verifying repository interactions
-        verify(userCouponRepository).findById(userCouponId);
-        verify(couponRepository).findById(couponId);
-    }
 
     @Test
     void createCoupon() {

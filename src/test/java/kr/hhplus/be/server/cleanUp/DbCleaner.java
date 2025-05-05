@@ -31,7 +31,6 @@ public class DbCleaner implements InitializingBean {
             entityManager.getMetamodel().getEntities().stream()
                 .filter(entity -> entity.getJavaType().isAnnotationPresent(Entity.class))
                 .map(entity -> entity.getJavaType().getAnnotation(Table.class).name())
-                .filter(tableName -> !"bestSeller".equalsIgnoreCase(tableName)) // ❗ 이 줄 추가
                 .toList()
         );
     }

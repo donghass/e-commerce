@@ -59,14 +59,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 //            .setLockMode(LockModeType.PESSIMISTIC_WRITE)  // 락 설정
             .fetch();
     }
-// 사용안함
-//    @Override
-//    public int updateStatus(Long orderId, PaymentStatus status) {
-//        return 0;
-//    }
 
     @Override
-    public Optional<OrderProductEntity> findByOrderId(Long orderId) {
+    public List<OrderProductEntity> findByOrderId(Long orderId) {
         return jpaOrderProductRepository.findByOrderId(orderId);
 
     }
@@ -86,5 +81,15 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public void saveAll(List<OrderProductEntity> orderItems) {
         jpaOrderProductRepository.saveAll(orderItems);
+    }
+
+    @Override
+    public List<OrderEntity> saveAllOrder(List<OrderEntity> order) {
+        return jpaOrderRepository.saveAll(order);
+    }
+
+    @Override
+    public void delete(OrderEntity order) {
+        jpaOrderRepository.delete(order);
     }
 }

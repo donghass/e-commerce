@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -36,4 +37,6 @@ public class BestSellerEntity {
     private LocalDateTime createdAt  = LocalDateTime.now();
     @Column(name = "updatedAt")
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+
 }

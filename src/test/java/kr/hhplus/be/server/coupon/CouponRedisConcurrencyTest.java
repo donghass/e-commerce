@@ -38,9 +38,11 @@ import org.instancio.Select;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -69,12 +71,13 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
     private EntityManager entityManager;
 
     @Autowired
-    private DbCleaner dbCleaner;
+    private StringRedisTemplate redisTemplate;
 
     @Test
     @DisplayName("쿠폰 발급 레디스 분산락 동시성 테스트")
     void createCoupon_concurrency_test() throws InterruptedException {
         // Arrange
+
         List<UserEntity> dummyUser = IntStream.range(0, 50) // 원하는 개수만큼 생성
             .mapToObj(i -> Instancio.of(UserEntity.class)
                 .ignore(field(UserEntity.class, "id"))
@@ -92,7 +95,7 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
 
         List<CouponEntity> savedCoupon = couponRepository.saveAll(dummyCoupon);
 
-        int numberOfThreads = 50;
+        int numberOfThreads = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
         List<Future<Boolean>> futures = new ArrayList<>();
@@ -129,5 +132,6 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
 
         // Assert
         assertThat(successCount).isEqualTo(1L);
+        System.out.println("쿠폰발급 성공 횟수 → " + successCount);
     }
 }

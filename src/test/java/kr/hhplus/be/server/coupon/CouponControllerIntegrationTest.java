@@ -64,8 +64,6 @@ public class CouponControllerIntegrationTest extends IntegerationTestSupport {
     @Autowired
     private EntityManager entityManager;
 
-    @Autowired
-    private DbCleaner dbCleaner;
 
     @Test
     @DisplayName("쿠폰 발급 성공")
@@ -108,7 +106,7 @@ public class CouponControllerIntegrationTest extends IntegerationTestSupport {
 
         couponRepository.saveAll(dummyCoupon);
 
-        List<UserCouponEntity> userCouponDummyList = IntStream.range(0, 100) // 원하는 개수만큼 생성
+        List<UserCouponEntity> userCouponDummyList = IntStream.range(0, 100000) // 원하는 개수만큼 생성
             .mapToObj(i -> Instancio.of(UserCouponEntity.class)
                 .ignore(Select.field(UserCouponEntity.class, "id"))
                 .create())
@@ -129,7 +127,6 @@ public class CouponControllerIntegrationTest extends IntegerationTestSupport {
     @Test
     @DisplayName("쿠폰 발급 비관적락 동시성 테스트")
     void issueCoupon_concurrent_withStockLimit() throws Exception {
-        dbCleaner.execute();
 
         List<UserEntity> dummyUser = IntStream.range(0, 10) // 원하는 개수만큼 생성
             .mapToObj(i -> Instancio.of(UserEntity.class)

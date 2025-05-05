@@ -8,5 +8,5 @@ public interface BestSellerRepository {
 
     List<BestSellerEntity> findAll();
 
-    void saveAll(List<BestSellerEntity> dummyList);
+    void saveAllAndFlush(List<BestSellerEntity> dummyList);
 }

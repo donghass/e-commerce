@@ -50,7 +50,7 @@ DB 조회 빈도 최소화:
 ```java
 @Scheduled(cron = "0 30 0 * * *")
 public void updatePopularProductsCache() {
-List<BestSellerResult> bestSellers = productService.bestSellerList(...);
+List<BestSellerResult> bestSellers = productService.bestSellerList(BestSellerReadType.SCHEDULED);
 redisTemplate.opsForValue().set("bestSellerList", objectMapper.writeValueAsString(bestSellers), 25, TimeUnit.HOURS);
 }
 ```

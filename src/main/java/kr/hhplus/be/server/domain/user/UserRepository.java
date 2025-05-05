@@ -11,4 +11,6 @@ public interface UserRepository {
     Optional<UserEntity> findById(Long aLong);
 
     List<UserEntity> saveAll(List<UserEntity> dummyUser);
+
+    UserEntity save(UserEntity user);
 }
