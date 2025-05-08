@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.config;
+package kr.hhplus.be.server.config.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.Filter;

@@ -67,7 +67,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductEntity> saveAll(List<ProductEntity> productDummyList) {
-        return jpaProductRepository.saveAll(productDummyList);
+        return jpaProductRepository.saveAllAndFlush(productDummyList);
     }
 
     @Override

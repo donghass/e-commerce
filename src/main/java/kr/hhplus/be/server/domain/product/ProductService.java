@@ -152,10 +152,21 @@ public class ProductService {
         }
         return products;
     }
-    @DistributedLock(key = "'lock:product:' + #op.productId()")
+    @DistributedLock(key = "'product:' + #op.productId()")
+    public ProductEntity decreaseSingleStock(OrderProduct op) {
+
+        try {
+            log.info("락상품 = "+op.toString());
+            return getProductEntity(op);
+        } catch (Exception e) {
+            log.error("락 획득 실패 또는 재고 차감 실패: ", e);
+            throw new RuntimeException("락 획득 실패", e);
+        }
+    }
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private ProductEntity decreaseSingleStock(OrderProduct op) {
+    public ProductEntity getProductEntity(OrderProduct op) {
         ProductEntity product = concurrencyService.productDecreaseStock(op.productId());
+        log.info("트랜잭션 = "+op.toString());
         product.updateStock(op.quantity());
         return productRepository.save(product);
     }
@@ -171,7 +182,7 @@ public class ProductService {
         }
     }
 
-    @DistributedLock(key = "'lock:product:' + #op.productId()")
+    @DistributedLock(key = "'product:' + #op.productId()")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void productSingleRollback(OrderProduct op) {
         ProductEntity product = concurrencyService.productDecreaseStock(op.productId());

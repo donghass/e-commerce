@@ -11,7 +11,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 @Configuration
-@EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableAspectJAutoProxy(proxyTargetClass = true)  // AOP 활성화
 public class RedissonConfig {
     @Value("${spring.redis.host}")
     private String redisHost;

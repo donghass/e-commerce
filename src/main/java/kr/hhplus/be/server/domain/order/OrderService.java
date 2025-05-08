@@ -78,6 +78,7 @@ public class OrderService {
         OrderEntity order = OrderEntity.create(user, couponResult != null ? couponResult.userCoupon() : null);
 
         for (int i = 0; i < items.size(); i++) {
+            log.info("아이템 = "+products.toString());
             order.addOrderProduct(products.get(i), items.get(i).quantity());
         }
 

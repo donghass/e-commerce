@@ -36,7 +36,7 @@ public class OrderFacade {
         boolean orderExpired = false;
         boolean couponRestored = false;
         List<OrderProductEntity> restoredStock = new ArrayList<>();
-
+log.info("재고원복");
         try {
             // 상품 재고 복원 (분산 락 포함, 트랜잭션 분리)
             // 데드락 방지를 위한 오더링
