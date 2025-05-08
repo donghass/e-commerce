@@ -21,6 +21,7 @@ import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.Assertions;
@@ -47,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers
+@Slf4j
 public class OrderControllerIntegrationTest extends IntegerationTestSupport {
 
     @Autowired
@@ -143,7 +145,7 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
     }
 
     @Test
-    @DisplayName("주문 재고 차감 동시성 테스트")
+    @DisplayName("주문 및 재고 차감 동시성 테스트")
     void createOrder_concurrent_stockLimit() throws Exception {
         //given
         // 10명의 사용자 생성
@@ -159,7 +161,8 @@ public class OrderControllerIntegrationTest extends IntegerationTestSupport {
             .ignore(Select.field(ProductEntity.class, "id"))
             .set(Select.field(ProductEntity.class, "stock"), 10L)
             .create();
-        ProductEntity savedProduct = productRepository.save(product);
+        ProductEntity savedProduct = productRepository.saveAndFlush(product);
+
 //      when
         int threadCount = 10;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);

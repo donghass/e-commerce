@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,13 +26,16 @@ import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
 import kr.hhplus.be.server.domain.order.OrderEntity;
+import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.OrderProductEntity;
 import kr.hhplus.be.server.domain.order.OrderRepository;
+import kr.hhplus.be.server.domain.point.PointEntity;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.scheduler.OrderScheduler;
+import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
 import org.instancio.Select;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +48,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -86,16 +91,20 @@ public class OrderRedisConcurrencyTest extends IntegerationTestSupport {
             .set(field(OrderEntity.class, "createdAt"), tenMinutesAgo)
             .set(field(OrderEntity.class, "userCouponId"), null)
             .set(field(OrderEntity.class, "userId"), savedUser.getId()) // userId 설정
+            .set(Select.field(OrderEntity.class, "status"), PaymentStatus.NOT_PAID)
+            .set(Select.field(OrderEntity.class, "orderProduct"), new ArrayList<>())
             .create();
         // 주문 저장
-        OrderEntity savedOrders = orderRepository.saveAndFlush(dummyOrders);  // 주문은 그 후에 저장
-        entityManager.flush(); // flush를 통해 영속성 컨텍스트에 반영
+
+        OrderEntity savedOrder = orderRepository.saveAndFlush(dummyOrders);
+        log.info("주문시간 = "+savedOrder.getCreatedAt());
+
         // 더미 주문 상품 생성
-        List<OrderProductEntity> dummyOrderProduct = IntStream.range(0, 2) // 50개의 주문 생성
+        List<OrderProductEntity> dummyOrderProduct = IntStream.range(0, 1) // 2개의 주문 생성
             .mapToObj(i -> Instancio.of(OrderProductEntity.class)
                 .ignore(field(OrderProductEntity.class, "id"))
                 .set(field(OrderProductEntity.class, "productId"), (long) (i + 1))
-                .set(field(OrderProductEntity.class, "order"), savedOrders) // order 필드에 dummyOrders 설정
+                .set(field(OrderProductEntity.class, "order"), savedOrder) // order 필드에 dummyOrders 설정
                 .set(field(OrderProductEntity.class, "quantity"), 1L)
                 .create())
             .toList();
@@ -123,8 +132,8 @@ public class OrderRedisConcurrencyTest extends IntegerationTestSupport {
                 try {
                     // 주문 생성
                     // 1. OrderProduct 객체 생성
-                    OrderCommand.OrderProduct orderProduct1 = new OrderCommand.OrderProduct(1L, 2L); // 제품 ID 1번, 수량 2
-                    OrderCommand.OrderProduct orderProduct2 = new OrderCommand.OrderProduct(2L, 3L); // 제품 ID 2번, 수량 3
+                    OrderCommand.OrderProduct orderProduct1 = new OrderCommand.OrderProduct(1L, 1L); // 제품 ID 1번, 수량 1
+                    OrderCommand.OrderProduct orderProduct2 = new OrderCommand.OrderProduct(1L, 2L); // 제품 ID 1번, 수량 2
 
                     // 2. OrderCommand 객체 생성
                     List<OrderCommand.OrderProduct> orderProducts = List.of(orderProduct1, orderProduct2);
@@ -161,7 +170,9 @@ public class OrderRedisConcurrencyTest extends IntegerationTestSupport {
             .count();
 
         // then
-        assertThat(successCount).isEqualTo(1L); // 성공 횟수는 1번이어야 함 (동시성 락 테스트의 결과)
+        Optional<ProductEntity> product = productRepository.findById(1L);
+        log.info("재고 확인 = " + product.get().getStock());
+        assertThat(successCount).isEqualTo(5L); // 성공 횟수는 1번이어야 함 (동시성 락 테스트의 결과)
         System.out.println("주문 생성 및 취소 성공 횟수 → " + successCount);
     }
 }

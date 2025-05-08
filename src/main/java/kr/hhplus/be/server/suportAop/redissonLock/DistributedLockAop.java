@@ -30,6 +30,7 @@ public class DistributedLockAop {
 
     @Around("@annotation(kr.hhplus.be.server.suportAop.redissonLock.DistributedLock)")
     public Object lock(final ProceedingJoinPoint joinPoint) throws Throwable {
+        log.info("AOP 실행");
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         DistributedLock distributedLock = method.getAnnotation(DistributedLock.class);
@@ -43,13 +44,16 @@ public class DistributedLockAop {
                 log.info("이미 락이 생성되어있습니다.");
                 return false;
             }
-
-            return joinPoint.proceed();
+            log.info("락 생성 성공 = "+ key);
+            return aopForTransaction.proceed(joinPoint);
         } catch (InterruptedException e) {
             throw new InterruptedException();
         } finally {
             try {
-                rLock.unlock();
+                // 다른 스레드가 락을 해제하는것을 방지하기 위해 현재 스레드가 락을 보유하고 있을때만 해제
+                if (rLock.isHeldByCurrentThread()) {
+                    rLock.unlock();
+                }
             } catch (IllegalMonitorStateException e) {
                 log.info("이미 락이 해제되어있습니다. : {} {}",
                     kv("serviceName", method.getName()),

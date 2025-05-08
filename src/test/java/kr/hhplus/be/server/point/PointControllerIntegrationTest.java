@@ -138,7 +138,7 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
             .set(Select.field(OrderEntity.class, "userId"), 1L)
             .set(Select.field(OrderEntity.class, "totalAmount"), 3000L)
             .set(Select.field(OrderEntity.class, "status"), PaymentStatus.NOT_PAID)
-            .set(Select.field(OrderEntity.class, "orderItems"), new ArrayList<>())
+            .set(Select.field(OrderEntity.class, "orderProduct"), new ArrayList<>())
             .create();
 
         PointEntity savedPoint = pointRepository.saveAndFlush(dummyPoint);
