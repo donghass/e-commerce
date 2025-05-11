@@ -35,8 +35,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final BestSellerRepository bestSellerRepository;
     private final ConcurrencyService concurrencyService;
-    private final ObjectMapper objectMapper; // JSON 직렬화를 위한 ObjectMapper
-    private final RedisTemplate<String, String> redisTemplate;
+    private final BestSellerCacheRepository bestSellerCacheRepository;
 
     // 상품 리스트 조회
     public Page<ProductResult> readProductList(Pageable pageable) {
@@ -62,15 +61,6 @@ public class ProductService {
             ProductEntity product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
 
-//            product.updateStock(quantity);
-//            Long currentStock = product.getStock();
-//            if (quantity > currentStock) {
-//                throw new BusinessException(ProductErrorCode.INVALID_QUANTITY);
-//            }
-//            // 재고 차감
-//            updateQuantity = currentStock - quantity;
-//            productRepository.save(product);
-
             totalAmount += product.getPrice() * quantity;
         }
         // 주문 총액
@@ -80,32 +70,13 @@ public class ProductService {
     public List<BestSellerResult> bestSellerList(BestSellerReadType bestSellerReadType) {
         List<BestSellerEntity> bestSeller = List.of();
         //  캐시갱신 스케줄러가 아닌 일반 인기상품 조회시 캐시에서 가져오고 캐시가 비어있을 경우 DB 조회
-        if (bestSellerReadType.equals(BestSellerReadType.MANUAL)) {
-                String cacheKey = "bestSellerList";  // 고정된 캐시 키 사용 - 인기상품 리스트
+        if (bestSellerReadType == BestSellerReadType.MANUAL) {
+            bestSeller = bestSellerCacheRepository.getCachedBestSellerList();
 
-            // 캐시에서 데이터 조회
-            ValueOperations<String, String> ops = redisTemplate.opsForValue();
-            String cachedData = ops.get(cacheKey);
-
-            if (cachedData != null) {
-                try {
-                    // 캐시된 데이터를 JSON에서 List<BestSellerResult>로 변환
-                    return objectMapper.readValue(cachedData, new TypeReference<List<BestSellerResult>>(){});
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+            if (bestSeller.isEmpty()) {
+                bestSeller = bestSellerRepository.findAll();
+                bestSellerCacheRepository.saveBestSellerList(bestSeller);
             }
-
-            // 캐시가 없으면 데이터베이스에서 조회
-            bestSeller = bestSellerRepository.findAll();
-
-            // 조회된 데이터를 캐시에 저장
-            try {
-                ops.set(cacheKey, objectMapper.writeValueAsString(bestSeller), 25, TimeUnit.HOURS); // TTL 25시간
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-            // 캐시 갱신 스케줄러일 경우 바로 DB 조회 
         }else if(bestSellerReadType.equals(BestSellerReadType.SCHEDULED)){
             bestSeller = bestSellerRepository.findAll();
         }
@@ -118,17 +89,16 @@ public class ProductService {
                     b.getSales()
                 ))
                 .collect(Collectors.toList());
-        
     }
 
-    @DistributedLock(key = "'product:' + #orderProduct.getProductId()")
+    @DistributedLock(key = "'product:' + #orderProduct.productId")
     public void expireOrder(OrderProductEntity orderProduct) {
             ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.getProductId());
 
             product.plusStock(orderProduct.getQuantity());
             productRepository.save(product);
     }
-    @DistributedLock(key = "'product:' + #orderProduct.getProductId()")
+    @DistributedLock(key = "'product:' + #orderProduct.productId")
     public void expireFailOrder(OrderProductEntity orderProduct) {
         ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.getProductId());
 
@@ -136,26 +106,12 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public List<ProductEntity> decreaseStock(List<OrderProduct> items) {
-        List<ProductEntity> products = new ArrayList<>();
-
-        for (OrderProduct op : items) {
-            try {
-                ProductEntity product = decreaseSingleStock(op); // 아래에 설명
-                products.add(product);
-            } catch (Exception e) {
-                log.error("재고 차감 실패 (productId={})", op.productId(), e);
-                break;
-            }
-        }
-        return products;
-    }
-    @DistributedLock(key = "'product:' + #op.productId()")
+    @DistributedLock(key = "'product:' + #op.productId")
     public ProductEntity decreaseSingleStock(OrderProduct op) {
 
         try {
-            log.info("락상품 = "+op.toString());
             ProductEntity product = concurrencyService.productDecreaseStock(op.productId());
+            log.info("락상품 재고 = "+product.getStock());
             product.updateStock(op.quantity());
             return productRepository.save(product);
         } catch (Exception e) {
@@ -175,7 +131,7 @@ public class ProductService {
         }
     }
 
-    @DistributedLock(key = "'product:' + #op.productId()")
+    @DistributedLock(key = "'product:' + #op.productId")
     private void productSingleRollback(OrderProduct op) {
         ProductEntity product = concurrencyService.productDecreaseStock(op.productId());
         product.plusStock(op.quantity());

@@ -60,7 +60,15 @@ public class OrderService {
         Long orderId;
 
         try {
-            products = productService.decreaseStock(sortedItems);
+            for (OrderProduct op : sortedItems) {
+                try {
+                    ProductEntity product = productService.decreaseSingleStock(op); // 단건 재고 차감
+                    products.add(product);
+                } catch (Exception e) {
+                    log.error("재고 차감 실패 (productId={})", op.productId(), e);
+                    break;
+                }
+            }
             couponResult = couponService.applyCoupon(command.userCouponId());
             orderId = createOrderAndOrderProduct(user, sortedItems, products, couponResult);
         } catch (Exception e) {
@@ -70,7 +78,6 @@ public class OrderService {
             rollbackOrder();
             throw new RuntimeException("주문 실패 및 보상 완료", e);
         }
-
         return orderId;
     }
     @Transactional(propagation = Propagation.REQUIRES_NEW)

@@ -133,7 +133,7 @@ public class OrderRedisConcurrencyTest extends IntegerationTestSupport {
                     // 주문 생성
                     // 1. OrderProduct 객체 생성
                     OrderCommand.OrderProduct orderProduct1 = new OrderCommand.OrderProduct(1L, 1L); // 제품 ID 1번, 수량 1
-                    OrderCommand.OrderProduct orderProduct2 = new OrderCommand.OrderProduct(1L, 2L); // 제품 ID 1번, 수량 2
+                    OrderCommand.OrderProduct orderProduct2 = new OrderCommand.OrderProduct(1L, 1L); // 제품 ID 1번, 수량 2
 
                     // 2. OrderCommand 객체 생성
                     List<OrderCommand.OrderProduct> orderProducts = List.of(orderProduct1, orderProduct2);
