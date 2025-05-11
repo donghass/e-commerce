@@ -4,8 +4,11 @@ package kr.hhplus.be.server.domain.product;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
@@ -35,7 +38,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final BestSellerRepository bestSellerRepository;
     private final ConcurrencyService concurrencyService;
-    private final BestSellerCacheRepository bestSellerCacheRepository;
+    private final RedisRepository redisRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     // 상품 리스트 조회
     public Page<ProductResult> readProductList(Pageable pageable) {
@@ -50,9 +54,9 @@ public class ProductService {
     }
 
     //주문 총액 조회  // 사용 안함
-    public Long readOrderProduct(List<OrderProduct> orderProduct){
+    public Long readOrderProduct(List<OrderProduct> orderProduct) {
         Long totalAmount = 0L;
-        for(int i = 0; i < orderProduct.size(); i++){
+        for (int i = 0; i < orderProduct.size(); i++) {
             Long productId = orderProduct.get(i).productId();
             Long quantity = orderProduct.get(i).quantity();
 //            Long updateQuantity;
@@ -71,36 +75,39 @@ public class ProductService {
         List<BestSellerEntity> bestSeller = List.of();
         //  캐시갱신 스케줄러가 아닌 일반 인기상품 조회시 캐시에서 가져오고 캐시가 비어있을 경우 DB 조회
         if (bestSellerReadType == BestSellerReadType.MANUAL) {
-            bestSeller = bestSellerCacheRepository.getCachedBestSellerList();
+            bestSeller = redisRepository.getCachedBestSellerList();
 
             if (bestSeller.isEmpty()) {
                 bestSeller = bestSellerRepository.findAll();
-                bestSellerCacheRepository.saveBestSellerList(bestSeller);
+                redisRepository.saveBestSellerList(bestSeller);
             }
-        }else if(bestSellerReadType.equals(BestSellerReadType.SCHEDULED)){
+        } else if (bestSellerReadType.equals(BestSellerReadType.SCHEDULED)) {
             bestSeller = bestSellerRepository.findAll();
         }
-            return bestSeller.stream()
-                .map(b -> new BestSellerResult(
-                    b.getProductId(),
-                    b.getName(),
-                    b.getPrice(),
-                    b.getStock(),
-                    b.getSales()
-                ))
-                .collect(Collectors.toList());
+        return bestSeller.stream()
+            .map(b -> new BestSellerResult(
+                b.getProductId(),
+                b.getName(),
+                b.getPrice(),
+                b.getStock(),
+                b.getSales()
+            ))
+            .collect(Collectors.toList());
     }
 
     @DistributedLock(key = "'product:' + #orderProduct.productId")
     public void expireOrder(OrderProductEntity orderProduct) {
-            ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.getProductId());
+        ProductEntity product = concurrencyService.productDecreaseStock(
+            orderProduct.getProductId());
 
-            product.plusStock(orderProduct.getQuantity());
-            productRepository.save(product);
+        product.plusStock(orderProduct.getQuantity());
+        productRepository.save(product);
     }
+
     @DistributedLock(key = "'product:' + #orderProduct.productId")
     public void expireFailOrder(OrderProductEntity orderProduct) {
-        ProductEntity product = concurrencyService.productDecreaseStock(orderProduct.getProductId());
+        ProductEntity product = concurrencyService.productDecreaseStock(
+            orderProduct.getProductId());
 
         product.updateStock(orderProduct.getQuantity());
         productRepository.save(product);
@@ -111,7 +118,7 @@ public class ProductService {
 
         try {
             ProductEntity product = concurrencyService.productDecreaseStock(op.productId());
-            log.info("락상품 재고 = "+product.getStock());
+            log.info("락상품 재고 = " + product.getStock());
             product.updateStock(op.quantity());
             return productRepository.save(product);
         } catch (Exception e) {
@@ -136,5 +143,34 @@ public class ProductService {
         ProductEntity product = concurrencyService.productDecreaseStock(op.productId());
         product.plusStock(op.quantity());
         productRepository.save(product);
+    }
+
+    public List<ProductResult> getTopRankedProducts(int size) {
+        String key = "ranking:daily:" + LocalDate.now();
+
+        // Redis에서 ID만 가져옴
+        Set<Long> productIds = redisRepository.getTopProducts(key, size);
+
+        // 이후 상품 정보를 DB에서 조회하거나 매핑
+        return productIds.stream()
+            .map(this::toResult)
+            .collect(Collectors.toList());
+    }
+
+    private ProductResult toResult(Long productId) {
+        ProductEntity product = productRepository.findById(productId)
+            .orElseThrow(() -> new BusinessException(ProductErrorCode.INVALID_PRODUCT_ID));
+
+        return new ProductResult(
+            product.getId(),
+            product.getName(),
+            product.getPrice(),
+            product.getStock()
+        );
+    }
+
+    public void increaseProductScore(Long productId, Long quantity) {
+        String key = "ranking:daily:" + LocalDate.now();
+        redisRepository.increaseScore(key, productId, quantity);
     }
 }

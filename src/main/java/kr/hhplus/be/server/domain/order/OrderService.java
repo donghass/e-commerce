@@ -117,11 +117,20 @@ public class OrderService {
     }
 
     public void updateOrderStatus(Long orderId){
-//        orderRepository.updateOrderStatus(orderId, PaymentStatus.PAID);
         OrderEntity order = orderRepository.findById(orderId)
             .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
         order.updateStatus(PaymentStatus.PAID);
         orderRepository.save(order);
+
+        // 주문 상품 목록 기준으로 인기 상품 점수 증가
+        for (OrderProductEntity item : order.getOrderProduct()) {
+            Long productId = item.getProductId();
+            Long quantity = item.getQuantity();
+
+            // Redis 랭킹 점수 증가
+            productService.increaseProductScore(productId, quantity);
+        }
+
     }
     @Transactional
     public void expireOrder(OrderEntity order, PaymentStatus status) {

@@ -2,6 +2,7 @@ package kr.hhplus.be.server.point;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,9 +16,12 @@ import kr.hhplus.be.server.api.point.UsePointsRequest;
 import kr.hhplus.be.server.cleanUp.IntegerationTestSupport;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
+import kr.hhplus.be.server.domain.order.OrderProductEntity;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.point.PointEntity;
 import kr.hhplus.be.server.domain.point.PointRepository;
+import kr.hhplus.be.server.domain.product.ProductEntity;
+import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import org.instancio.Instancio;
@@ -28,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,6 +42,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.instancio.Select.field;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -70,6 +77,12 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
 
     @Test
     @DisplayName("포인트 충전 성공")
@@ -125,7 +138,7 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
     }
 
     @Test
-    @DisplayName("포인트 사용 성공")
+    @DisplayName("포인트 사용 및 레디스 스코어 증가 성공")
     void usePoint_success() throws Exception {
         // given: 사전 충전
         PointEntity dummyPoint = Instancio.of(PointEntity.class)
@@ -133,6 +146,9 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
             .set(Select.field(PointEntity.class, "userId"), 1L)
             .set(Select.field(PointEntity.class, "balance"), 5000L)
             .create();
+
+        PointEntity savedPoint = pointRepository.saveAndFlush(dummyPoint);
+
         OrderEntity dummyOrder = Instancio.of(OrderEntity.class)
             .ignore(Select.field(OrderEntity.class, "id"))  // supply → ignore 로 변경
             .set(Select.field(OrderEntity.class, "userId"), 1L)
@@ -141,8 +157,29 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
             .set(Select.field(OrderEntity.class, "orderProduct"), new ArrayList<>())
             .create();
 
-        PointEntity savedPoint = pointRepository.saveAndFlush(dummyPoint);
         OrderEntity savedOrder = orderRepository.saveAndFlush(dummyOrder);
+
+        // 더미 주문 상품 생성
+        List<OrderProductEntity> dummyOrderProduct = IntStream.range(0, 1) // 1개의 주문 생성
+            .mapToObj(i -> Instancio.of(OrderProductEntity.class)
+                .ignore(field(OrderProductEntity.class, "id"))
+                .set(field(OrderProductEntity.class, "productId"), (long) (i + 1))
+                .set(field(OrderProductEntity.class, "order"), savedOrder) // order 필드에 dummyOrders 설정
+                .set(field(OrderProductEntity.class, "quantity"), 1L)
+                .create())
+            .toList();
+
+        orderRepository.saveAll(dummyOrderProduct);
+
+        List<ProductEntity> dummyProduct = IntStream.range(0, 1) // 1개의 상품 생성
+            .mapToObj(i -> Instancio.of(ProductEntity.class)
+                .ignore(field(ProductEntity.class, "id"))
+                .set(Select.field(ProductEntity.class, "stock"), 10L)
+                .create())
+            .toList();
+
+        List<ProductEntity> savedProduct = productRepository.saveAll(dummyProduct);
+
         // given
         UsePointsRequest request = new UsePointsRequest(1L);
         System.out.println("Saved ID: " + dummyOrder.getId());
@@ -157,6 +194,13 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.code").value("200"));
+
+        // Redis 랭킹 점수 검증
+        String rankingKey = "ranking:daily:" + LocalDate.now();
+        Double score = redisTemplate.opsForZSet().score(rankingKey, "1");
+
+        System.out.println("스코어 = "+score);
+        assertThat(score).isEqualTo(1.0);
     }
 
     @Test

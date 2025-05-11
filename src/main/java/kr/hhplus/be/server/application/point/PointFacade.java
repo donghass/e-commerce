@@ -39,7 +39,6 @@ public class PointFacade {
         PointResult point = pointService.readPoint(order.getUserId());
 
         pointService.UseAndHistoryPoint(order);
-//        pointServiceWithRedisson.usePoint(order,point.id());
 
         orderService.updateOrderStatus(orderId);
 

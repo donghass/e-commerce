@@ -21,4 +21,8 @@ public class ProductFacade {
 
         return productService.bestSellerList(BestSellerReadType.MANUAL);
     }
+
+    public List<ProductResult> getTopProducts(int size) {
+        return productService.getTopRankedProducts(size);
+    }
 }

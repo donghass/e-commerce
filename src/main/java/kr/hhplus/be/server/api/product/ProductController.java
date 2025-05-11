@@ -39,13 +39,25 @@ public class ProductController implements ProductControllerDocs {
 //      return ResponseEntity.ok(response);
     }
 
-    // 인기 상품 5개 조회 API
+    // 3일 인기 상품 5개 조회 API
     @GetMapping("/best")
     public ResponseEntity<CommonResponse<List<BestSellerResponse>>> getBestSeller() {
         List<BestSellerResult> bestSeller = productFacade.bestSellerList();
 
         List<BestSellerResponse> response = bestSeller.stream()
             .map(BestSellerResponse::from)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, response));
+    }
+
+    // 일간 인기상품조회 API
+    @GetMapping("/top")
+    public ResponseEntity<CommonResponse<List<ProductListResponse>>> getTopProducts(@RequestParam(defaultValue = "10") int size) {
+        List<ProductResult> topProducts = productFacade.getTopProducts(size);
+
+        List<ProductListResponse> response = topProducts.stream()
+            .map(ProductListResponse::from)
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS, response));
