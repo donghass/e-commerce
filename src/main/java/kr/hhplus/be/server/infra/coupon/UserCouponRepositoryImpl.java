@@ -88,4 +88,13 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
                 .fetchOne()
         );
     }
+
+    @Override
+    public long count(Long couponId) {
+        return queryFactory
+            .select(userCoupon.count())
+            .from(userCoupon)
+            .where(userCoupon.couponId.eq(couponId))
+            .fetchOne();
+    }
 }

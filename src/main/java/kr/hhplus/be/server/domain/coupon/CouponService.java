@@ -25,6 +25,7 @@ public class CouponService {
 
     private final ConcurrencyService concurrencyService;
 
+
     @SpinLock(key = "'coupon:' + #command.couponId()")       // @Order(Ordered.HIGHEST_PRECEDENCE) = aop 에 생성
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
@@ -97,5 +98,11 @@ public class CouponService {
         } catch (Exception e) {
             log.error("보상 실패 - 쿠폰 복구 실패", e);
         }
+    }
+
+    // 쿠폰 발급
+    @Transactional
+    public void issuedCoupon(UserCouponEntity userCoupon) {
+        userCouponRepository.save(userCoupon);
     }
 }

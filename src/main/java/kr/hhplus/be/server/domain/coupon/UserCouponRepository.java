@@ -23,4 +23,6 @@ public interface UserCouponRepository {
     void saveAll(List<UserCouponEntity> userCouponDummyList);
 
     Optional<Object> findByUserIdAndCouponId(Long userId, Long couponId);
+
+    long count(Long couponId);
 }
