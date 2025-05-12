@@ -148,10 +148,10 @@ public class ProductService {
     public List<ProductResult> getTopRankedProducts(int size) {
         String key = "ranking:daily:" + LocalDate.now();
 
-        // Redis에서 ID만 가져옴
+        // Redis에서 TOP 10 상품 ID를 스코어 순서대로 조회
         Set<Long> productIds = redisRepository.getTopProducts(key, size);
 
-        // 이후 상품 정보를 DB에서 조회하거나 매핑
+        // 상품 정보를 DB에서 조회하여 RANKING 순서대로 담기
         return productIds.stream()
             .map(this::toResult)
             .collect(Collectors.toList());

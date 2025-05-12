@@ -28,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -122,14 +124,18 @@ public class OrderService {
         order.updateStatus(PaymentStatus.PAID);
         orderRepository.save(order);
 
-        // 주문 상품 목록 기준으로 인기 상품 점수 증가
-        for (OrderProductEntity item : order.getOrderProduct()) {
-            Long productId = item.getProductId();
-            Long quantity = item.getQuantity();
-
-            // Redis 랭킹 점수 증가
-            productService.increaseProductScore(productId, quantity);
-        }
+        // 트랜잭션 커밋 이후 실행되도록 등록
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // 주문 상품 목록 기준으로 인기 상품 점수 증가 (커밋 이후 실행)
+                for (OrderProductEntity item : order.getOrderProduct()) {
+                    Long productId = item.getProductId();
+                    Long quantity = item.getQuantity();
+                    productService.increaseProductScore(productId, quantity);  // Redis 증가
+                }
+            }
+        });
 
     }
     @Transactional

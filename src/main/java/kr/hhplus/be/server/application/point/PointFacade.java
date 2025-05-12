@@ -36,7 +36,6 @@ public class PointFacade {
     @Transactional
     public void usePoint(Long orderId){
         OrderEntity order = orderService.readOrder(orderId);
-        PointResult point = pointService.readPoint(order.getUserId());
 
         pointService.UseAndHistoryPoint(order);
 

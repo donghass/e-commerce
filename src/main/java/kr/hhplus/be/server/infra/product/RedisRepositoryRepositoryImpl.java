@@ -34,7 +34,7 @@ public class RedisRepositoryRepositoryImpl implements RedisRepository {
                 e.printStackTrace();
             }
         }
-        return List.of(); // or null
+        return List.of();
     }
 
     @Override
