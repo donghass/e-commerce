@@ -17,7 +17,7 @@ import java.util.LinkedHashSet;
 
 @Repository
 @RequiredArgsConstructor
-public class RedisRepositoryRepositoryImpl implements RedisRepository {
+public class RedisRepositoryImpl implements RedisRepository {
 
     private static final String CACHE_KEY = "bestSellerList";
 

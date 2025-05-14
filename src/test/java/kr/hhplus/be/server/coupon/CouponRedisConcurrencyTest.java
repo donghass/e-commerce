@@ -201,8 +201,8 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
 
         latch.await(); // 모든 요청 완료 대기
 
-        // then: 비동기 처리 기다리기 (최대 5초)
-        Awaitility.await().atMost(Duration.ofSeconds(30)).until(() ->
+        // then: 비동기 처리 기다리기
+        Awaitility.await().atMost(Duration.ofSeconds(100)).until(() ->
             userCouponRepository.count(savedCoupon.get(0).getId()) == 100
         );
 

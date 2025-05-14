@@ -99,20 +99,43 @@ DTO 변환 후 응답 반환
 4. 쿠폰 정보 조회 → UserCouponEntity 생성
 5. 트랜잭션으로 DB 저장 (`@Transactional`)
 
-✅ **예시 코드 (핵심 로직)**
+✅ **핵심 로직: Lua Script + EVALSHA 캐싱 적용으로 원자성과 속도 향상**
 
+중복 발급 방지, 재고 차감, 발급 기록을 모두 Lua 스크립트 내부에서 처리함으로써 단일 명령 내에서 원자성(atomicity)을 보장한다.
+또한 Redis에 스크립트를 1회 등록하고 SHA1 해시 기반으로 재사용하는 방식(EVALSHA)을 적용하여 불필요한 네트워크 전송을 줄이고 성능을 향상시켰다.
 ```java
-Long added = redisTemplate.opsForSet().add("coupon:issued:" + couponId, userId.toString());
-if (added == null || added == 0) return; // 중복
+Long result = couponRedisRepository.tryIssue(issuedKey, stockKey, userId.toString());
 
-String token = redisTemplate.opsForList().leftPop("coupon:stock:" + couponId);
-if (token == null) {
-    redisTemplate.opsForSet().remove("coupon:issued:" + couponId, userId.toString());
-    return; // 재고 없음
+@PostConstruct
+public void loadScript() {
+   String script = // 위의 Lua 코드 내용
+           "if redis.call(\"SISMEMBER\", KEYS[1], ARGV[1]) == 1 then " +
+                   "return -1 end " +
+                   "local stock = redis.call(\"LPOP\", KEYS[2]) " +
+                   "if not stock then return 0 end " +
+                   "redis.call(\"SADD\", KEYS[1], ARGV[1]) " +
+                   "return 1";
+
+   cachedScriptSha = redisTemplate.execute((RedisCallback<String>) connection ->
+           connection.scriptLoad(script.getBytes(StandardCharsets.UTF_8))
+   );
 }
 
-UserCouponEntity entity = UserCouponEntity.save(...);
-couponService.issuedCoupon(entity); // 트랜잭션 저장
+public Long tryIssue(String issuedKey, String stockKey, String userId) {
+   List<String> keys = List.of(issuedKey, stockKey);
+   List<String> args = List.of(userId);
+
+   return redisTemplate.execute((RedisCallback<Long>) connection ->
+           (Long) connection.evalSha(
+                   cachedScriptSha,
+                   ReturnType.INTEGER,
+                   2,
+                   issuedKey.getBytes(),
+                   stockKey.getBytes(),
+                   userId.getBytes()
+           )
+   );
+}
 ```
 
 ✅ **비동기 설정**
@@ -123,13 +146,14 @@ couponService.issuedCoupon(entity); // 트랜잭션 저장
 
 ## 4. 성능 및 장점
 
-| 항목           | 효과                                                            |
-|----------------|---------------------------------------------------------------|
-| 요청 처리 성능   | Redis 기반 자료구조만 사용하므로 평균 응답 1~2ms 수준 유지 가능 ( 테스트시 약 1.29 초 발생) |
-| 중복 방지 정확도 | Redis Set으로 O(1) 중복 확인 및 삭제 가능                                |
-| 확장성          | TTL로 Redis 키 자동 만료 → 일회성 이벤트 쿠폰 운영에 적합                        |
-| 트랜잭션 분리    | 발급 처리 이후에만 DB 저장 → 비동기 구조로 확장 가능                              |
-| 테스트 용이성    | Redis, DB 모두 단위 테스트 및 통합 테스트 가능 (동시성 시나리오 포함)                 |
+| 항목         | 효과                                                               |
+|------------|------------------------------------------------------------------|
+| 요청 처리 성능   | Redis 기반 자료구조 및 Lua + EVALSHA 적용으로 평균 응답 1~2ms 유지 (테스트 시 약 0.9초) |
+| 원자성 확보     | Lua 내부에서 중복 체크 + 재고 차감 + 발급 기록을 동시에 처리하여 race condition 제거 |
+| 중복 방지 정확도  | Redis Set으로 O(1) 중복 확인 및 삭제 가능                                   |
+| 확장성        | TTL로 Redis 키 자동 만료 → 일회성 이벤트 쿠폰 운영에 적합                           |
+| 트랜잭션 분리    | 발급 처리 이후에만 DB 저장 → 비동기 구조로 확장 가능                                 |
+| 테스트 용이성    | Redis, DB 모두 단위 테스트 및 통합 테스트 가능 (동시성 시나리오 포함)                    |
 
 ## 5. 테스트 결과
 
@@ -141,6 +165,7 @@ couponService.issuedCoupon(entity); // 트랜잭션 저장
 ## 6. 회고 및 개선 방향
 
 👍 **잘한 점**
+- Redis Lua + EVALSHA 적용으로 성능 향상 + 원자성 확보
 - Redis만으로 락 없이 선착순 쿠폰 발급 처리 성공
 - `@Async` 기반 설계로 서비스 확장성 및 응답 속도 확보
 - DIP 기반 Repository 추상화 및 서비스-리스너 분리 설계 적용
