@@ -190,13 +190,15 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
         // 시작 시간 기록
         long startTime = System.currentTimeMillis();
 
-        // when: 100명의 유저가 동시에 발급 시도
+        // when: 110명의 유저가 동시에 발급 시도
         for (int i = 0; i < userCount; i++) {
             final Long userId = (long) i + 1;
             executor.submit(() -> {
-                eventPublisher.publishEvent(new CouponIssueEvent(userId, savedCoupon.get(0).getId()));
+//                eventPublisher.publishEvent(new CouponIssueEvent(userId, savedCoupon.get(0).getId()));
+            couponFacade.issueCouponAsync(new CouponIssueCommand(userId, savedCoupon.get(0).getId()));
                 latch.countDown();
             });
+
         }
 
         latch.await(); // 모든 요청 완료 대기

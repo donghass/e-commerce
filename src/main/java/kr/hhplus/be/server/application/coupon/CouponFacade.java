@@ -1,9 +1,17 @@
 package kr.hhplus.be.server.application.coupon;
 
+import com.esotericsoftware.minlog.Log;
 import jakarta.validation.Valid;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import kr.hhplus.be.server.common.exception.BusinessException;
+import kr.hhplus.be.server.domain.coupon.CouponEntity;
+import kr.hhplus.be.server.domain.coupon.CouponRedisRepository;
+import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCouponWithCouponDto;
+import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -13,6 +21,7 @@ import org.springframework.stereotype.Component;
 public class CouponFacade {
     private final CouponService couponService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CouponRedisRepository couponRedisRepository;
 
     public void createCoupon(@Valid CouponIssueCommand command) {
         couponService.createCoupon(command);
@@ -23,7 +32,17 @@ public class CouponFacade {
         return new UserCouponListResult(userId, userCouponList);
     }
 
-    public void issueCouponAsync(CouponIssueCommand command) {
-        eventPublisher.publishEvent(new CouponIssueEvent(command.userId(), command.couponId()));
+    public Long issueCouponAsync(CouponIssueCommand command) {
+        Long userId = command.userId();
+        Long couponId = command.couponId();
+        String stockKey = "coupon:stock:" + couponId;
+        String issuedKey = "coupon:issued:" + couponId;
+
+        Long result = couponRedisRepository.tryIssue(issuedKey, stockKey, userId.toString());
+
+        if(result == 1) {
+            eventPublisher.publishEvent(new CouponIssueEvent(command.userId(), command.couponId()));
+        }
+        return result;
     }
 }

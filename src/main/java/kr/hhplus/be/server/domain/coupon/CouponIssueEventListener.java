@@ -21,7 +21,7 @@ public class CouponIssueEventListener {
     private final CouponRedisRepository couponRedisRepository;
 
     // 비동기 실행
-    @Async("taskExecutor") // 반드시 executor 이름 명시!
+    @Async("taskExecutor") // 반드시 executor 이름 명시
     @EventListener
     public void handleCouponIssue(CouponIssueEvent event) {
         Long userId = event.userId();
@@ -35,31 +35,6 @@ public class CouponIssueEventListener {
             CouponEntity coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 쿠폰 ID"));
 
-            Long result = couponRedisRepository.tryIssue(issuedKey, stockKey, userId.toString());
-
-            if (result == -1) {
-                log.warn("중복 발급: userId={}, couponId={}", userId, couponId);
-                return;
-            }
-            if (result == 0) {
-                log.warn("재고 부족: userId={}, couponId={}", userId, couponId);
-                return;
-            }
-
-//            // 중복 발급인지 체크
-//            Long added = redisTemplate.opsForSet().add(issuedKey, userId.toString());
-//            if (added == null || added == 0) {
-//                log.warn("중복 쿠폰 발급 요청: userId={}, couponId={}", userId, couponId);
-//                return;
-//            }
-//
-//            // 재고 차감
-//            String stockToken = redisTemplate.opsForList().leftPop(stockKey);
-//            if (stockToken == null) {
-//                redisTemplate.opsForSet().remove(issuedKey, userId.toString());
-//                log.warn("재고 소진: userId={}, couponId={}", userId, couponId);
-//                return;
-//            }
 
             // TTL 계산 (현재 시각과 쿠폰 종료일의 차이) - ttl 은 쿠폰의 enddate 로 설정
             LocalDateTime now = LocalDateTime.now();

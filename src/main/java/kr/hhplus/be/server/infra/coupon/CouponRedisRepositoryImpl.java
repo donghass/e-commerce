@@ -21,11 +21,13 @@ public class CouponRedisRepositoryImpl implements CouponRedisRepository {
 
     @PostConstruct
     public void loadScript() {
-        String script = // 위의 Lua 코드 내용
-            "if redis.call(\"SISMEMBER\", KEYS[1], ARGV[1]) == 1 then " +
-                "return -1 end " +
-                "local stock = redis.call(\"LPOP\", KEYS[2]) " +
+        System.out.println(">> loadScript called");
+        String script =
+            "local stock = redis.call(\"LPOP\", KEYS[2]) " +
                 "if not stock then return 0 end " +
+                "if redis.call(\"SISMEMBER\", KEYS[1], ARGV[1]) == 1 then " +
+                "redis.call(\"LPUSH\", KEYS[2], stock) " + // 재고 복구
+                "return -1 end " +
                 "redis.call(\"SADD\", KEYS[1], ARGV[1]) " +
                 "return 1";
 
@@ -37,7 +39,7 @@ public class CouponRedisRepositoryImpl implements CouponRedisRepository {
     public Long tryIssue(String issuedKey, String stockKey, String userId) {
         List<String> keys = List.of(issuedKey, stockKey);
         List<String> args = List.of(userId);
-
+        System.out.println("cachedScriptSha = " + cachedScriptSha);
         return redisTemplate.execute((RedisCallback<Long>) connection ->
             (Long) connection.evalSha(
                 cachedScriptSha,

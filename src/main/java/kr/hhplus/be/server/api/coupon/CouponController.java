@@ -17,6 +17,7 @@ import kr.hhplus.be.server.common.response.CommonResponse;
 import kr.hhplus.be.server.common.response.ResponseCode;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponWithCouponDto;
+import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,9 +53,17 @@ public class CouponController implements CouponControllerDocs {
     @Operation(summary = "사용자 선착순 쿠폰 발급", description = "userId를 이용해 해당 사용자의 쿠폰을 발급합니다.")
     @PostMapping("/issue")
     public ResponseEntity<CommonResponse<Object>> issueCoupon(@Valid @RequestBody CouponIssueRequest request) {
-        couponFacade.issueCouponAsync(request.toCommand());
+        Long result = couponFacade.issueCouponAsync(request.toCommand());
 
+        if (result == -1) {
+            // 이미 발급
+            return ResponseEntity.ok(CommonResponse.fail(CouponErrorCode.COUPON_ALREADY_ISSUED));
+        } else if (result == 0) {
+            // 재고 부족
+            return ResponseEntity.ok(CommonResponse.fail(CouponErrorCode.COUPON_OUT_OF_STOCK));
+        } else {
         // 성공적으로 처리되면 204 No Content 반환
         return ResponseEntity.ok(CommonResponse.success(ResponseCode.SUCCESS));
+        }
     }
 }
