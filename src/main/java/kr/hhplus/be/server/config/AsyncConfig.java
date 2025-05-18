@@ -13,10 +13,10 @@ public class AsyncConfig {
     @Bean(name = "taskExecutor")
     public Executor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(30);   // 동시에 10개 이상 처리
+        executor.setCorePoolSize(30);   // 동시에 30개 이상 처리
         executor.setMaxPoolSize(50);
         executor.setQueueCapacity(200);
-        executor.setThreadNamePrefix("coupon-async-");
+        executor.setThreadNamePrefix("async-");
         executor.initialize();
         return executor;
     }

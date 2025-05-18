@@ -25,7 +25,7 @@ public class PointService {
 
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
-    private final RestTemplate restTemplate; // 데이터플렛폼 전송 restTemplate
+
 
     // 포인트 조회
     public PointResult readPoint(Long userId) {
@@ -88,22 +88,22 @@ public class PointService {
         pointHistoryRepository.save(pointHistory);
     }
 
-    // 데이터플렛폼전송
-    @Transactional(propagation = Propagation.REQUIRES_NEW) // 트랜잭션 분리
-    public void sendToDataPlatform(OrderEntity order) {
-        String url = "https://mock-dataplatform.com/api/payments"; // 가상 플랫폼 URL
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<OrderEntity> entity = new HttpEntity<>(order, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            System.out.println("데이터 플랫폼에 성공적으로 전송됨");
-        } else {
-            System.err.println("전송 실패: " + response.getStatusCode());
-        }
-    }
+//    // 데이터플렛폼전송
+//    @Transactional(propagation = Propagation.REQUIRES_NEW) // 트랜잭션 분리
+//    public void sendToDataPlatform(OrderEntity order) {
+//        String url = "https://mock-dataplatform.com/api/payments"; // 가상 플랫폼 URL
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        HttpEntity<OrderEntity> entity = new HttpEntity<>(order, headers);
+//
+//        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+//
+//        if (response.getStatusCode().is2xxSuccessful()) {
+//            System.out.println("데이터 플랫폼에 성공적으로 전송됨");
+//        } else {
+//            System.err.println("전송 실패: " + response.getStatusCode());
+//        }
+//    }
 }

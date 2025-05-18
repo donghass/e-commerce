@@ -2,7 +2,6 @@ package kr.hhplus.be.server.domain.coupon;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import kr.hhplus.be.server.application.coupon.CouponIssueEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

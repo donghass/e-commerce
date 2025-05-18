@@ -1,12 +1,13 @@
 package kr.hhplus.be.server.application.point;
 
 import kr.hhplus.be.server.common.exception.BusinessException;
-import kr.hhplus.be.server.domain.coupon.CouponService;
+import kr.hhplus.be.server.application.order.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderService;
 import kr.hhplus.be.server.domain.point.PointService;
 import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PointFacade {
     private final PointService pointService;
     private final OrderService orderService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PointResult readPoint(Long userId) {
         if (userId <= 0) {
@@ -41,7 +43,9 @@ public class PointFacade {
 
         orderService.updateOrderStatus(orderId);
 
-        // 외부 데이터 플랫폼에 전송  -- 트랜잭션 분리
-        pointService.sendToDataPlatform(order);
+        // 외부 데이터 플랫폼에 주문 정보 전송  -- 트랜잭션 분리
+//        pointService.sendToDataPlatform(order);
+        // 커밋 이후 처리할 이벤트 발행
+        eventPublisher.publishEvent(new OrderCompletedEvent(order));
     }
 }

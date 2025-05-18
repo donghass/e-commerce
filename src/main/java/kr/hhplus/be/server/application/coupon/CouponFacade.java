@@ -1,17 +1,11 @@
 package kr.hhplus.be.server.application.coupon;
 
-import com.esotericsoftware.minlog.Log;
 import jakarta.validation.Valid;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
-import kr.hhplus.be.server.common.exception.BusinessException;
-import kr.hhplus.be.server.domain.coupon.CouponEntity;
+import kr.hhplus.be.server.domain.coupon.CouponIssueEvent;
 import kr.hhplus.be.server.domain.coupon.CouponRedisRepository;
-import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.coupon.UserCouponWithCouponDto;
-import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

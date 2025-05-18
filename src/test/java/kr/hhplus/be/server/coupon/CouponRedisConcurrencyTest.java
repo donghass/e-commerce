@@ -6,43 +6,29 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.IntStream;
-import kr.hhplus.be.server.api.coupon.CouponIssueRequest;
 import kr.hhplus.be.server.application.coupon.CouponFacade;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
-import kr.hhplus.be.server.application.coupon.CouponIssueEvent;
-import kr.hhplus.be.server.cleanUp.DbCleaner;
 import kr.hhplus.be.server.cleanUp.IntegerationTestSupport;
 import kr.hhplus.be.server.domain.coupon.CouponEntity;
-import kr.hhplus.be.server.domain.coupon.CouponEntity.DiscountType;
 import kr.hhplus.be.server.domain.coupon.CouponRepository;
-import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
 import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
-import kr.hhplus.be.server.domain.product.BestSellerEntity;
-import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import org.awaitility.Awaitility;
 import org.instancio.Instancio;
-import org.instancio.Select;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,7 +36,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.http.MediaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -198,7 +183,6 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
             couponFacade.issueCouponAsync(new CouponIssueCommand(userId, savedCoupon.get(0).getId()));
                 latch.countDown();
             });
-
         }
 
         latch.await(); // 모든 요청 완료 대기
