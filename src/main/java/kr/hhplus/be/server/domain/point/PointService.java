@@ -8,16 +8,9 @@ import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.point.PointHistoryEntity.Type;
 import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -87,23 +80,4 @@ public class PointService {
         PointHistoryEntity pointHistory = PointHistoryEntity.save(point.getId(), order.getTotalAmount(), point.getBalance(), Type.USE);
         pointHistoryRepository.save(pointHistory);
     }
-
-//    // 데이터플렛폼전송
-//    @Transactional(propagation = Propagation.REQUIRES_NEW) // 트랜잭션 분리
-//    public void sendToDataPlatform(OrderEntity order) {
-//        String url = "https://mock-dataplatform.com/api/payments"; // 가상 플랫폼 URL
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//        HttpEntity<OrderEntity> entity = new HttpEntity<>(order, headers);
-//
-//        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-//
-//        if (response.getStatusCode().is2xxSuccessful()) {
-//            System.out.println("데이터 플랫폼에 성공적으로 전송됨");
-//        } else {
-//            System.err.println("전송 실패: " + response.getStatusCode());
-//        }
-//    }
 }

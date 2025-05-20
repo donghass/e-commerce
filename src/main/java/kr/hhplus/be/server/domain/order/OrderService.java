@@ -7,34 +7,22 @@ import java.util.stream.Collectors;
 import kr.hhplus.be.server.application.order.OrderCommand;
 import kr.hhplus.be.server.application.order.OrderCommand.OrderProduct;
 import kr.hhplus.be.server.common.exception.BusinessException;
-import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
 import kr.hhplus.be.server.domain.coupon.CouponApplyResult;
-import kr.hhplus.be.server.domain.coupon.CouponEntity;
-import kr.hhplus.be.server.domain.coupon.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.CouponService;
-import kr.hhplus.be.server.domain.coupon.UserCouponEntity;
-import kr.hhplus.be.server.domain.coupon.UserCouponRepository;
-import kr.hhplus.be.server.domain.coupon.execption.CouponErrorCode;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
 import kr.hhplus.be.server.domain.product.ProductEntity;
-import kr.hhplus.be.server.domain.product.ProductRepository;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.domain.user.execption.UserErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -42,14 +30,9 @@ import org.springframework.web.client.RestTemplate;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final ProductRepository productRepository;
     private final UserRepository userRepository;
-    private final UserCouponRepository userCouponRepository;
-    private final CouponRepository couponRepository;
-    private final ConcurrencyService concurrencyService;
     private final ProductService productService;
     private final CouponService couponService;
-    private final RestTemplate restTemplate; // 데이터플렛폼 전송 restTemplate
 
     private OrderEntity currentOrder; // 보상용 저장
 
@@ -147,24 +130,5 @@ public class OrderService {
     public void expireOrder(OrderEntity order, PaymentStatus status) {
         order.updateStatus(status);
         orderRepository.save(order);
-    }
-
-    // 데이터플렛폼전송
-    @Transactional(propagation = Propagation.REQUIRES_NEW) // 트랜잭션 분리
-    public void sendToDataPlatform(OrderEntity order) {
-        String url = "https://mock-dataplatform.com/api/payments"; // 가상 플랫폼 URL
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<OrderEntity> entity = new HttpEntity<>(order, headers);
-
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            System.out.println("데이터 플랫폼에 성공적으로 전송됨");
-        } else {
-            System.err.println("전송 실패: " + response.getStatusCode());
-        }
     }
 }

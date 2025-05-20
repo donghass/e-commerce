@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.application.order;
 
+import kr.hhplus.be.server.domain.order.DataPlatformClient;
+import kr.hhplus.be.server.domain.order.OrderCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

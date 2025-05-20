@@ -1,8 +1,10 @@
 package kr.hhplus.be.server.infra.order;
 
-import kr.hhplus.be.server.application.order.DataPlatformClient;
+import kr.hhplus.be.server.domain.order.DataPlatformClient;
+import kr.hhplus.be.server.domain.order.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

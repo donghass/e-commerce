@@ -22,7 +22,6 @@ public class CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
-
     private final ConcurrencyService concurrencyService;
 
 
