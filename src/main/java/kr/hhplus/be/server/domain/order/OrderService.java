@@ -108,8 +108,9 @@ public class OrderService {
             OrderErrorCode.ORDER_NOT_FOUND));
     }
 
+    @Transactional
     public void updateOrderStatus(PointEventInfo event){
-        OrderEntity order = orderRepository.findById(event.getOrderId())
+        OrderEntity order = orderRepository.findById(event.getOrder().getId())
             .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
         try {
         order.updateStatus(PaymentStatus.PAID);
@@ -117,20 +118,19 @@ public class OrderService {
         } catch (Exception e) {
             // 실패 이벤트 발행
             orderEventPublisher.publishOrderUpdateFailedEvent(event);
+            System.out.println("실패 이벤트");
             throw e;
         }
         // 데이터플랫폼 전송 비동기 이벤트
         orderEventPublisher.publishCompleted(order);
+
+//        productService.increaseProductScore(order);
         // 트랜잭션 커밋 이후 실행되도록 등록
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 // 주문 상품 목록 기준으로 인기 상품 점수 증가 (커밋 이후 실행)
-                for (OrderProductEntity item : order.getOrderProduct()) {
-                    Long productId = item.getProductId();
-                    Long quantity = item.getQuantity();
-                    productService.increaseProductScore(productId, quantity);  // Redis 증가
-                }
+                productService.increaseProductScore(order);
             }
         });
     }

@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.order;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.instancio.Select.field;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -9,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import kr.hhplus.be.server.application.order.OrderCommand;
@@ -20,7 +23,10 @@ import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.OrderRepository;
 import kr.hhplus.be.server.domain.order.OrderService;
+import kr.hhplus.be.server.domain.point.PointEventInfo;
 import kr.hhplus.be.server.domain.user.UserEntity;
+import org.instancio.Instancio;
+import org.instancio.Select;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -150,10 +156,27 @@ public class OrderTest {
     void updateOrderStatus() {
         // Arrange
         Long orderId = 1L;
+// 현재 시간에서 10분을 뺀 시간 (10분 전)
+        LocalDateTime tenMinutesAgo = LocalDateTime.now().minus(10, ChronoUnit.MINUTES);
+
+        // 준비: 더미 주문 생성
+        OrderEntity dummyOrders = Instancio.of(OrderEntity.class)
+            .ignore(field(OrderEntity.class, "id"))
+            .set(field(OrderEntity.class, "createdAt"), tenMinutesAgo)
+            .set(field(OrderEntity.class, "userCouponId"), null)
+            .set(field(OrderEntity.class, "userId"), orderId) // userId 설정
+            .set(Select.field(OrderEntity.class, "status"), PaymentStatus.NOT_PAID)
+            .set(Select.field(OrderEntity.class, "orderProduct"), new ArrayList<>())
+            .create();
+        // 주문 저장
+        OrderEntity savedOrder = orderRepository.saveAndFlush(dummyOrders);
+
+        PointEventInfo pointEventInfo = null;
+        pointEventInfo.save(savedOrder,1L);
         doNothing().when(orderRepository).updateOrderStatus(orderId, PaymentStatus.PAID);
 
         // Act
-        orderService.updateOrderStatus(orderId);
+        orderService.updateOrderStatus(pointEventInfo);
 
         // Assert
         verify(orderRepository, times(1)).updateOrderStatus(orderId, PaymentStatus.PAID);

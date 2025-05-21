@@ -10,6 +10,7 @@ import kr.hhplus.be.server.application.product.BestSellerResult;
 import kr.hhplus.be.server.application.product.ProductResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.concurrency.ConcurrencyService;
+import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderProductEntity;
 import kr.hhplus.be.server.domain.product.execption.ProductErrorCode;
 import kr.hhplus.be.server.suportAop.redissonLock.DistributedLock;
@@ -18,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -157,8 +159,14 @@ public class ProductService {
         );
     }
 
-    public void increaseProductScore(Long productId, Long quantity) {
-        String key = "ranking:daily:" + LocalDate.now();
-        redisRepository.increaseScore(key, productId, quantity);
+    @Transactional
+    public void increaseProductScore(OrderEntity order) {
+        for (OrderProductEntity item : order.getOrderProduct()) {
+            Long productId = item.getProductId();
+            Long quantity = item.getQuantity();
+            String key = "ranking:daily:" + LocalDate.now();
+            System.out.println("레디스 키 = "+key);
+            redisRepository.increaseScore(key, productId, quantity);
+        }
     }
 }

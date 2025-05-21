@@ -83,8 +83,9 @@ public class PointService {
         pointHistoryRepository.save(pointHistory);
 
         // 포인트 차감 후 오더 상태 변경 이벤트 발행
-        PointEventInfo pointEventInfo = null;
-        pointEventInfo.save(order,pointHistory.getId());
+        PointEventInfo pointEventInfo = PointEventInfo.save(order,pointHistory.getId());
+
+        System.out.println("pointEventInfo = "+pointEventInfo);
         pointEventPublisher.publishPointUsedEvent(pointEventInfo);
     }
 
