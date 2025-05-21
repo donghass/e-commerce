@@ -134,7 +134,7 @@ public class PointTest {
 
 
         // Act
-        pointService.UseAndHistoryPoint(mockOrder);
+        pointService.useAndHistoryPoint(mockOrder);
 
         // Assert
         verify(pointRepository,times(1)).save(mockPointEntity);

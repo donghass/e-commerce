@@ -5,6 +5,7 @@ import kr.hhplus.be.server.application.point.ChargePointCommand;
 import kr.hhplus.be.server.application.point.PointResult;
 import kr.hhplus.be.server.common.exception.BusinessException;
 import kr.hhplus.be.server.domain.order.OrderEntity;
+import kr.hhplus.be.server.domain.point.PointEvent.PointUsedCompleted;
 import kr.hhplus.be.server.domain.point.PointHistoryEntity.Type;
 import kr.hhplus.be.server.domain.point.execption.PointErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class PointService {
 
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final PointEventPublisher pointEventPublisher;
 
 
     // 포인트 조회
@@ -67,7 +69,7 @@ public class PointService {
 
     // 포인트 사용
     @Transactional
-    public void UseAndHistoryPoint(OrderEntity order){
+    public void useAndHistoryPoint(OrderEntity order){
 
         PointEntity point = pointRepository.findByUserId(order.getUserId())
             .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));
@@ -79,5 +81,20 @@ public class PointService {
 
         PointHistoryEntity pointHistory = PointHistoryEntity.save(point.getId(), order.getTotalAmount(), point.getBalance(), Type.USE);
         pointHistoryRepository.save(pointHistory);
+
+        // 포인트 차감 후 오더 상태 변경 이벤트 발행
+        PointEventInfo pointEventInfo = null;
+        pointEventInfo.save(order,pointHistory.getId());
+        pointEventPublisher.publishPointUsedEvent(pointEventInfo);
+    }
+
+    public void rollbackPoint(PointUsedCompleted event) {
+        PointEntity point = pointRepository.findByUserId(event.pointEventInfo().getOrder().getUserId())
+            .orElseThrow(() -> new BusinessException(PointErrorCode.INVALID_USER_ID));
+
+        point.charge(event.pointEventInfo().getOrder().getTotalAmount());
+        pointRepository.save(point);
+
+        pointHistoryRepository.delete(event.pointEventInfo().getPointHisId());
     }
 }

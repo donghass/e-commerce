@@ -10,4 +10,5 @@ public interface PointHistoryRepository {
 
     void save(PointHistoryEntity pointHistory);
 
+    void delete(Long id);
 }

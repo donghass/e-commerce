@@ -18,4 +18,9 @@ public class PointHistoryRepositoryImpl implements PointHistoryRepository {
     public void save(PointHistoryEntity pointHistory) {
         jpaPointHistoryRepository.save(pointHistory);
     }
+
+    @Override
+    public void delete(Long id) {
+        jpaPointHistoryRepository.deleteById(id);
+    }
 }

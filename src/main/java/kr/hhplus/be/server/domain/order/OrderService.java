@@ -11,6 +11,7 @@ import kr.hhplus.be.server.domain.coupon.CouponApplyResult;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
+import kr.hhplus.be.server.domain.point.PointEventInfo;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.UserEntity;
@@ -33,7 +34,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductService productService;
     private final CouponService couponService;
-
+    private final OrderEventPublisher orderEventPublisher;
     private OrderEntity currentOrder; // 보상용 저장
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
@@ -107,12 +108,19 @@ public class OrderService {
             OrderErrorCode.ORDER_NOT_FOUND));
     }
 
-    public void updateOrderStatus(Long orderId){
-        OrderEntity order = orderRepository.findById(orderId)
+    public void updateOrderStatus(PointEventInfo event){
+        OrderEntity order = orderRepository.findById(event.getOrderId())
             .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+        try {
         order.updateStatus(PaymentStatus.PAID);
         orderRepository.save(order);
-
+        } catch (Exception e) {
+            // 실패 이벤트 발행
+            orderEventPublisher.publishOrderUpdateFailedEvent(event);
+            throw e;
+        }
+        // 데이터플랫폼 전송 비동기 이벤트
+        orderEventPublisher.publishCompleted(order);
         // 트랜잭션 커밋 이후 실행되도록 등록
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.application.point;
 
 import kr.hhplus.be.server.common.exception.BusinessException;
-import kr.hhplus.be.server.domain.order.DataPlatformClient;
-import kr.hhplus.be.server.domain.order.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.OrderEntity;
 import kr.hhplus.be.server.domain.order.OrderEventPublisher;
 import kr.hhplus.be.server.domain.order.OrderService;
@@ -37,18 +35,15 @@ public class PointFacade {
     }
 
     // 결재
-    @Transactional
     public void usePoint(Long orderId){
         OrderEntity order = orderService.readOrder(orderId);
 
-        pointService.UseAndHistoryPoint(order);
+        pointService.useAndHistoryPoint(order);
 
-        orderService.updateOrderStatus(orderId);
+//        포인트 결제완료 후 비동기 이벤트 처리
+//        orderService.updateOrderStatus(orderId);
 
-        // 외부 데이터 플랫폼에 주문 정보 전송  -- 트랜잭션 분리
-//        pointService.sendToDataPlatform(order);
-        // 커밋 이후 처리할 이벤트 발행
-//        applicationEventPublisher.publishEvent(new OrderCompletedEvent(order));
-        orderEventPublisher.publishCompleted(order);
+//        주문 상태 변경 후 이벤트처리하도록 수정
+//        orderEventPublisher.publishCompleted(order);
     }
 }
