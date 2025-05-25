@@ -15,15 +15,15 @@ import org.springframework.web.client.RestTemplate;
 public class OrderDataPlatformClient implements DataPlatformClient {
 
     private final RestTemplate restTemplate;
+    public static final String DATA_PLATFORM_URL = "https://mock-dataplatform.com/api/payments";
 
     public void sendToDataPlatform(OrderEntity order) {
-        String url = "https://mock-dataplatform.com/api/payments";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<OrderEntity> entity = new HttpEntity<>(order, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(DATA_PLATFORM_URL, entity, String.class);
 
         if (response.getStatusCode().is2xxSuccessful()) {
             System.out.println("데이터 플랫폼에 성공적으로 전송됨");
