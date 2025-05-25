@@ -57,6 +57,10 @@ dependencies {
     // LocalDateTime 직렬화
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
@@ -66,6 +70,7 @@ dependencies {
     testImplementation 'org.instancio:instancio-junit:2.15.0'
     testImplementation 'org.instancio:instancio-core:2.15.0'
     implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
 def querydslDir = "build/generated/querydsl"

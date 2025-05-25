@@ -1,5 +1,16 @@
 package kr.hhplus.be.server.point;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
@@ -42,15 +53,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.instancio.Select.field;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -83,6 +85,7 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+
 
     @Test
     @DisplayName("포인트 충전 성공")
@@ -179,7 +182,6 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
             .toList();
 
         List<ProductEntity> savedProduct = productRepository.saveAll(dummyProduct);
-
         // given
         UsePointsRequest request = new UsePointsRequest(1L);
         System.out.println("Saved ID: " + dummyOrder.getId());
@@ -201,6 +203,7 @@ public class PointControllerIntegrationTest extends IntegerationTestSupport {
 
         System.out.println("스코어 = "+score);
         assertThat(score).isEqualTo(1.0);
+        Thread.sleep(5000); // 또는 CountDownLatch로 대기 로직 구현 가능
     }
 
     @Test

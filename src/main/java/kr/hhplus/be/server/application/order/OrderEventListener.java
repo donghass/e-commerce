@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.order;
 import kr.hhplus.be.server.domain.order.DataPlatformClient;
 import kr.hhplus.be.server.domain.order.OrderEvent;
 import kr.hhplus.be.server.domain.order.OrderService;
+import kr.hhplus.be.server.domain.order.kafka.KafkaOrderProducer;
 import kr.hhplus.be.server.domain.point.PointEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -18,11 +19,14 @@ public class OrderEventListener {
 
     private final DataPlatformClient dataPlatformClient;
     private final OrderService orderService;
+    private final KafkaOrderProducer kafkaOrderProducer;
 
-    @Async("taskExecutor")  // taskExecutor 빈 등록 필요
+//    @Async("taskExecutor")  // taskExecutor 빈 등록 필요
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderSendCompleted(OrderEvent.OrderCompletedEvent event) {
-        dataPlatformClient.sendToDataPlatform(event.order());
+//        dataPlatformClient.sendToDataPlatform(event.order());
+        // 카프카 메시지 발행
+        kafkaOrderProducer.publishCompleted(event.order());
     }
 
     @Async("taskExecutor")  // taskExecutor 빈 등록 필요

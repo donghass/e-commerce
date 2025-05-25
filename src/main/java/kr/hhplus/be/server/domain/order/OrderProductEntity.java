@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -46,6 +47,7 @@ public class OrderProductEntity {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "orders_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))  //FK 생성 X
     private OrderEntity order;
 
