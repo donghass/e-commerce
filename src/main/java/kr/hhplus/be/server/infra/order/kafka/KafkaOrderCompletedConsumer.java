@@ -22,7 +22,7 @@ public class KafkaOrderCompletedConsumer {
         this.restTemplate = restTemplate;
     }
 
-    @KafkaListener(topics = "order.completed", groupId = "data-platform-group")
+    @KafkaListener(topics = "order.completed", groupId = "data-platform-group", containerFactory = "kafkaListenerContainerFactory" )// kafkaConfig 에서 만든 팩토리 이름
     public void listen(String message) {
         try {
 
@@ -43,6 +43,8 @@ public class KafkaOrderCompletedConsumer {
 
         } catch (Exception e) {
             e.printStackTrace();
+            // 예외 던지기 → error handler가 처리함 DLQ 적용
+            throw new RuntimeException("메시지 처리 실패", e);
         }
     }
 }
