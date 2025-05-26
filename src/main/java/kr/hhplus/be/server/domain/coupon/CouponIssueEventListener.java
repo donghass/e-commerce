@@ -34,7 +34,6 @@ public class CouponIssueEventListener {
             CouponEntity coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 쿠폰 ID"));
 
-
             // TTL 계산 (현재 시각과 쿠폰 종료일의 차이) - ttl 은 쿠폰의 enddate 로 설정
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime endDate = coupon.getEndDate();

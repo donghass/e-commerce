@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import kr.hhplus.be.server.application.coupon.CouponIssueCommand;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,17 +25,14 @@ public class CouponService {
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
     private final ConcurrencyService concurrencyService;
+    private final RedisTemplate<String, String> redisTemplate;
 
 
     @SpinLock(key = "'coupon:' + #command.couponId()")       // @Order(Ordered.HIGHEST_PRECEDENCE) = aop 에 생성
     @Transactional
     public void createCoupon(CouponIssueCommand command) {
-//        CouponEntity coupon = couponRepository.findByIdLock(command.couponId())
-//            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
 
         CouponEntity coupon = concurrencyService.couponDecreaseStock(command.couponId());
-//        CouponEntity coupon = couponRepository.findById(command.couponId())
-//            .orElseThrow(() -> new BusinessException(CouponErrorCode.INVALID_COUPON_ID));
         coupon.couponUpdate();
         couponRepository.save(coupon);
 
@@ -103,5 +102,46 @@ public class CouponService {
     @Transactional
     public void issuedCoupon(UserCouponEntity userCoupon) {
         userCouponRepository.save(userCoupon);
+    }
+
+    @Transactional  // kafka 쿠폰 발급
+    public void couponIssued(CouponIssueCommand command) {
+        Long couponId = command.couponId();
+
+        String stockKey = "coupon:stock:" + couponId;
+        String issuedKey = "coupon:issued:" + couponId;
+
+
+        // 1. 재고 감소
+        CouponEntity coupon = couponRepository.findById(command.couponId())
+            .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND));
+
+        // TTL 계산 (현재 시각과 쿠폰 종료일의 차이) - ttl 은 쿠폰의 enddate 로 설정
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endDate = coupon.getEndDate();
+        Duration ttl = Duration.between(now, endDate);
+
+        // 쿠폰 만료일이 현시점 과거가 아니고 TTL 이 설정되지 않았을 경우에만 설정
+        if (!ttl.isNegative() && !ttl.isZero()) {
+            if (redisTemplate.getExpire(stockKey) == -1) {
+                redisTemplate.expire(stockKey, ttl);
+            }
+            if (redisTemplate.getExpire(issuedKey) == -1) {
+                redisTemplate.expire(issuedKey, ttl);
+            }
+        }
+
+        coupon.couponUpdate();
+        couponRepository.save(coupon);
+
+        // userCoupon 테이블에서 조회하여 있으면 실패
+        userCouponRepository.findByUserIdAndCouponId(command.userId(), command.couponId())
+            .ifPresent(c -> { throw new BusinessException(CouponErrorCode.COUPON_ALREADY_ISSUED); });
+
+        // 사용자 쿠폰 저장
+        UserCouponEntity userCoupon = UserCouponEntity.save(command.userId(),coupon.getName(),coupon.getId(),LocalDateTime.now().plusDays(7));
+
+        userCouponRepository.save(userCoupon);
+        log.info("쿠폰 발행 메시지 컨슈머 성공");
     }
 }

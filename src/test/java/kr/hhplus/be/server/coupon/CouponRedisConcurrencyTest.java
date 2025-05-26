@@ -137,7 +137,7 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
     }
 
     @Test
-    @DisplayName("100명 동시 쿠폰 발급 - 정확히 100명만 성공")
+    @DisplayName("100명 동시 쿠폰 발급 - 정확히 100명만 성공 카프카 메시지 발행")
     void issueCoupon_concurrent_100Users() throws Exception {
         // given
         int userCount = 110;
@@ -153,7 +153,7 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
         List<CouponEntity> dummyCoupon = IntStream.range(0, 1) // 원하는 개수만큼 생성
             .mapToObj(i -> Instancio.of(CouponEntity.class)
                 .ignore(field(CouponEntity.class, "id"))
-                .set(field(CouponEntity.class, "stock"), 1L)
+                .set(field(CouponEntity.class, "stock"), 100L)
                 .create())
             .toList();
 
@@ -188,16 +188,16 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
         latch.await(); // 모든 요청 완료 대기
 
         // then: 비동기 처리 기다리기
-        Awaitility.await().atMost(Duration.ofSeconds(100)).until(() ->
-            userCouponRepository.count(savedCoupon.get(0).getId()) == 100
-        );
+//        Awaitility.await().atMost(Duration.ofSeconds(100)).until(() ->
+//            userCouponRepository.count(savedCoupon.get(0).getId()) == 100
+//        );
 
         // 종료 시간 기록
         long endTime = System.currentTimeMillis();
         // 실행 시간 계산 및 출력
         long duration = endTime - startTime;
         System.out.println("총 실행 시간(ms) = " + duration);
-
+        Thread.sleep(100000);
         long successCount = userCouponRepository.count(savedCoupon.get(0).getId());
         long redisStockLeft = redisTemplate.opsForList().size(stockKey);
         long redisSetSize = redisTemplate.opsForSet().size(issuedKey);
