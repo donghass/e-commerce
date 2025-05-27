@@ -197,7 +197,7 @@ public class CouponRedisConcurrencyTest extends IntegerationTestSupport {
         // 실행 시간 계산 및 출력
         long duration = endTime - startTime;
         System.out.println("총 실행 시간(ms) = " + duration);
-        Thread.sleep(100000);
+        Thread.sleep(10000);
         long successCount = userCouponRepository.count(savedCoupon.get(0).getId());
         long redisStockLeft = redisTemplate.opsForList().size(stockKey);
         long redisSetSize = redisTemplate.opsForSet().size(issuedKey);

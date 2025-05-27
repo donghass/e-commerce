@@ -19,11 +19,10 @@ public class CouponIssueConsumer {
     @KafkaListener(
         topics = "coupon.issue",
         groupId = "coupon-consumer-group",
-        containerFactory = "couponKafkaListenerContainerFactory"  // 아래 설정 참고
+        containerFactory = "couponKafkaListenerContainerFactory"
     )
     public void consume(CouponIssueCommand command) {
         try {
-            log.info("쿠폰 컨슈머 성공");
             couponService.couponIssued(command);
         } catch (Exception e) {
             // 예외를 삼키면 안 되고 반드시 던져야 DLQ 전송됨
