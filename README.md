@@ -9,7 +9,7 @@
   
 ### 설계 문서
 
-# 1. [요구사항 정의서](docs/Requirements.md)
+# 1. [요구사항 정의서](docs/Requirements.md) (문서 참조)
 # 2. [시퀀스 다이어그램](docs/sequence_diagram.md)
 ![image](https://github.com/user-attachments/assets/5b7e2da3-eb79-4075-9983-9ad655f7da6f)
 ![image](https://github.com/user-attachments/assets/295e19b3-d999-4584-a8e3-473609fbbabd)
@@ -260,7 +260,7 @@ API 에러 상황 정리
 | **처리 행 수**      | 1,000,000건          | 100건     |
 
 # 6. [DB기반 동시성 이슈 개선](docs/Concurrency_Report.md) - 경합 발생 빈도, 기능의 중요도에 따른 낙관적 락, 비관적 락 사용 (자세한 내용 문서 참조)
-# 7. [Redis 기반 캐싱 전략](docs/Cache_report.md) 
+# 7. [Redis 기반 캐싱 전략](docs/Cache_report.md) (문서 참조)
 - Redis 캐시 적용 성능 향상
 ![image](https://github.com/user-attachments/assets/4c573a0c-d38c-42d0-b34a-5c5ec2326464)
 
@@ -281,7 +281,7 @@ DB 조회 빈도 최소화: 애플리케이션 전반에서 인기 상품 조회
 #### 결론 및 기대 효과
 항목 효과 보유 쿠폰 캐시 적용 응답 속도 약 1/3 단축, DB 부하 감소 캐시 TTL/무효화 설정 신선한 데이터 유지 및 오염 방지 인기 상품 캐시 전략 항상 캐시 유지, 조회 속도 안정성 확보
 
-# 8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_report.md)
+# 8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_report.md) (문서 참조)
 ### 시스템 설계  
 #### Redis 기반 TOP10 인기 상품 조회  
 상품 결제마다 주문 수량만큼 해당 상품의 score를 증가하고, 조회시 레디스 ZSet 자료구조 사용하여 스코어 순서로 10 건의 productid 순차 조회 후 DB 조회한다.  
@@ -327,7 +327,7 @@ DB 조회 빈도 최소화: 애플리케이션 전반에서 인기 상품 조회
 | 테스트 용이성    | Redis, DB 모두 단위 테스트 및 통합 테스트 가능 (동시성 시나리오 포함)                    |
 
 (자세한 내용 문서 참조)
-# 9. [서비스 MSA 확장 서비스 설계 및 분산트랜잭션](docs/MSA_Architecture_Change_Design_Report.md)
+# 9. [서비스 MSA 확장 서비스 설계 및 분산트랜잭션](docs/MSA_Architecture_Change_Design_Report.md) (문서 참조)
 # 10. [주문 정보 외부 전송 kafka 메시지 처리](docs/kafka_basic_learning.md) 
 - 카프카에 대한 기본 학습 자료 정리 및 주문 프로세스 완료 시 비동기 이벤트 발행 후 kafka 메시지로 주문 정보 외부 전송 을 구현하였으며,
   이렇게 구현한 이유는 현재는 주문 프로세스 완료 후 처리하는 기능은 주문 정보 외부 전송 뿐이지만 추후 알림 서비스 등의 확정성을 고려하여 설계 및 구현
