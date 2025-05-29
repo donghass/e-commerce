@@ -11,13 +11,14 @@ import kr.hhplus.be.server.domain.coupon.CouponApplyResult;
 import kr.hhplus.be.server.domain.coupon.CouponService;
 import kr.hhplus.be.server.domain.order.OrderEntity.PaymentStatus;
 import kr.hhplus.be.server.domain.order.execption.OrderErrorCode;
-import kr.hhplus.be.server.infra.order.kafka.KafkaOrderCompletedProducer;
+import kr.hhplus.be.server.infra.order.kafka.OrderCompletedProducer;
 import kr.hhplus.be.server.domain.point.PointEventInfo;
 import kr.hhplus.be.server.domain.product.ProductEntity;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.user.UserEntity;
 import kr.hhplus.be.server.domain.user.UserRepository;
 import kr.hhplus.be.server.domain.user.execption.UserErrorCode;
+import kr.hhplus.be.server.infra.order.kafka.OrderCompletedProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class OrderService {
     private final CouponService couponService;
     private final OrderEventPublisher orderEventPublisher;
     private OrderEntity currentOrder; // 보상용 저장
-    private final KafkaOrderCompletedProducer kafkaOrderEventProducer;
+    private final OrderCompletedProducer orderEventProducer;
 
     // 주문 : 주문 상태, 토탈 주문 금액 insert
     // 재고차감 -> 쿠폰적용 -> 주문 -> 주문상품
@@ -124,7 +125,7 @@ public class OrderService {
             throw e;
         }
         // 데이터플랫폼 전송 비동기 이벤트
-//        kafkaOrderEventProducer.publishCompleted(order);
+//        orderEventProducer.publishCompleted(order);
         orderEventPublisher.publishCompleted(order);
 
 //        productService.increaseProductScore(order);

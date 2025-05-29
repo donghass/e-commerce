@@ -3,31 +3,7 @@
 
 
 설계 시퀀스다이어그램
-
-sequenceDiagram
-participant User as 사용자
-participant API as 쿠폰 발급 API
-participant Redis as Redis 재고
-participant Kafka as Kafka 브로커
-participant Consumer as Kafka 컨슈머
-participant DB as DB 저장소
-
-    User ->> API: 쿠폰 발급 요청
-    API ->> Redis: 레디스 재고 차감
-    alt 재고 부족
-        API -->> User: 재고 소진, 중복 발급 응답
-    else 재고 있음
-        API ->> Kafka: 메시지 발행 (coupon.issue)
-        Kafka ->> Consumer: 메시지 전달
-        Consumer ->> DB: 재고 및 중복 발급 확인 (userId + couponId)
-        alt 재고 부족 혹은 이미 발급됨
-            Consumer -->> Kafka: DLQ 처리
-        else 발급 가능
-            Consumer ->> DB: 쿠폰 발급 저장
-            Consumer -->> Kafka: 처리 완료 로그
-        end
-    end
-
+![img.png](img.png)
 
 Kafka 구성
 
@@ -74,13 +50,9 @@ public void publishCompleted(CouponIssueCommand command) {
 ```
 
 ## 결론
-Kafka를 기반으로 비동기 발급 구조를 갖춤으로써 다음을 기대할 수 있습니다:
-
-트래픽 피크 시에도 안정적인 처리
-
-발급 실패 메시지 재처리 가능
-
-처리 병렬화로 속도 향상
-
+Kafka를 기반으로 비동기 발급 구조를 갖춤으로써 다음을 기대할 수 있습니다.  
+트래픽 피크 시에도 안정적인 처리  
+발급 실패 메시지 재처리 가능  
+처리 병렬화로 속도 향상  
 서비스 간 느슨한 결합과 장애 전파 최소화
 
