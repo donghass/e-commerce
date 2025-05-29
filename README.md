@@ -6,7 +6,7 @@
 2. [시퀀스 다이어그램](docs/sequence_diagram.md)
 3. [ERD](docs/ERD.md)
 4. [API 명세서](docs/API_docs.md)
-5. [DB 성능 개선](docs/DB 성능개선보고서.md)
+5. [DB 성능 개선](docs/DB_indexing_report.md)
 6. [DB기반 동시성 이슈 개선](docs/Concurrency_Report.md)
 7. [Redis 기반 캐싱 전략](docs/Cache_report.md)
 8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_repord.md)
