@@ -333,7 +333,8 @@ DB 조회 빈도 최소화: 애플리케이션 전반에서 인기 상품 조회
   이렇게 구현한 이유는 현재는 주문 프로세스 완료 후 처리하는 기능은 주문 정보 외부 전송 뿐이지만 추후 알림 서비스 등의 확정성을 고려하여 설계 및 구현
 # 11. [카프카 활용 선착순 쿠폰 발급 대용량 트래픽 비동기 처리 설계 및 구현](docs/kafka_design_report.md) (자세한 내용 문서 참조)
   기존 Spring 내장 이벤트 기반으로 처리되던 선착순 쿠폰 발급 로직을 Kafka 기반의 비동기 메시징 시스템으로 변경하여 대용량 트래픽에도 견딜 수 있는 확장성, 장애 분리, 메시지 유실 방지, 재처리 용이성을 확보
-  ![image](https://github.com/user-attachments/assets/bca4898b-0d6c-44cb-8d92-0cbbd1c4ece9)
+  ![image](https://github.com/user-attachments/assets/a698660e-606e-4d65-859b-d254d7f6d7ec)
+
 
   ### Kafka Producer
 ```java
