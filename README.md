@@ -9,7 +9,7 @@
 5. [DB 성능 개선](docs/DB_indexing_report.md)
 6. [DB기반 동시성 이슈 개선](docs/Concurrency_Report.md)
 7. [Redis 기반 캐싱 전략](docs/Cache_report.md)
-8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_repord.md)
+8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_report.md)
 9. [서비스 MSA 확장 서비스 설계 및 분산트랜잭션](dosc/MSA_Architecture_Change_Design_Report.md)
 10. [주문 정보 외부 전송 kafka 메시지 처리](docs/kafka_basic_learning.md)
 11. [카프카 활용 선착순 쿠폰 발급 대용량 트래픽 비동기 처리 설계 및 구현](docs/kafka_design_report.md)
