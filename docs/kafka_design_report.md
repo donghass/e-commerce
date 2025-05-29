@@ -4,6 +4,29 @@
 
 설계 시퀀스다이어그램
 
+sequenceDiagram
+participant User as 사용자
+participant API as 쿠폰 발급 API
+participant Redis as Redis 재고
+participant Kafka as Kafka 브로커
+participant Consumer as Kafka 컨슈머
+participant DB as DB 저장소
+
+    User ->> API: 쿠폰 발급 요청
+    API ->> Redis: 레디스 재고 차감
+    alt 재고 부족
+        API -->> User: 재고 소진, 중복 발급 응답
+    else 재고 있음
+        API ->> Kafka: 메시지 발행 (coupon.issue)
+        Kafka ->> Consumer: 메시지 전달
+        Consumer ->> DB: 재고 및 중복 발급 확인 (userId + couponId)
+        alt 재고 부족 혹은 이미 발급됨
+            Consumer -->> Kafka: DLQ 처리
+        else 발급 가능
+            Consumer ->> DB: 쿠폰 발급 저장
+            Consumer -->> Kafka: 처리 완료 로그
+        end
+    end
 
 
 Kafka 구성
