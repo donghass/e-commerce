@@ -9,14 +9,14 @@
   
 ### 설계 문서
 
-1. [요구사항 정의서](docs/Requirements.md)
-2. [시퀀스 다이어그램](docs/sequence_diagram.md)
+# 1. [요구사항 정의서](docs/Requirements.md)
+# 2. [시퀀스 다이어그램](docs/sequence_diagram.md)
 ![image](https://github.com/user-attachments/assets/5b7e2da3-eb79-4075-9983-9ad655f7da6f)
 ![image](https://github.com/user-attachments/assets/295e19b3-d999-4584-a8e3-473609fbbabd)
 이하 문서 참조
-3. [ERD](docs/ERD.md)
+# 3. [ERD](docs/ERD.md)
 ![image](https://github.com/user-attachments/assets/d9e3169b-464b-4ed6-b588-e4ee94a4aafc)
-4. [API 명세서](docs/API_docs.md)
+# 4. [API 명세서](docs/API_docs.md)
  e-commerce API Docs
 
 ![](https://img.shields.io/static/v1?label=&message=GET&color=blue)
@@ -24,122 +24,6 @@
 ![](https://img.shields.io/static/v1?label=&message=PUT&color=orange)
 ![](https://img.shields.io/static/v1?label=&message=PATCH&color=pink)
 ![](https://img.shields.io/static/v1?label=&message=DELETE&color=red)
-
-## Point
-
-### 포인트 사용 API (결제)
-
-> ![](https://img.shields.io/static/v1?label=&message=POST&color=brightgreen) <br>
-> `/api/v1/points/use`
-
-<details markdown="1">
-
-<summary>스펙 상세</summary>
-
-#### Body
-
-|    필드명    | 데이터 타입 |       설명       |  필수여부  | 유효성 검사 |
-|:---------:|:------:|:--------------:|:------:|:-------|
-| `orderId` | Number | 사용자가 주문한 주문 ID | **필수** | 양의 정수  |
-
-**Example Request Body**
-
-```json
-{
-  "orderId": 1
-}
-```
-
-#### Response
-
-<details markdown="1">
-<summary>204 No Content : 결제가 성공적으로 완료된 경우</summary>
-
-</details>
-
-<details markdown="1">
-<summary>409 Conflict : 결제 금액이 포인트보다 커서 결제가 실패한 경우</summary>
-
-```json
-{
-  "code": 409,
-  "message": "비즈니스 정책을 위반한 요청입니다.",
-  "detail": "포인트 잔액이 부족합니다. 현재 잔액 : 100,000원, 결제 금액 : 200,000원"
-}
-```
-
-</details>
-
-<details markdown="1">
-<summary>409 Conflict : 주문 상태가 EXPIRED(결제 유효 기간 만료)이기 때문에 결제가 실패한 경우</summary>
-
-```json
-{
-  "code": 409,
-  "message": "비즈니스 정책을 위반한 요청입니다.",
-  "detail": "주문 상태가 EXPIRED(결제 불가 건)입니다."
-}
-```
-
-</details>
-</details>
-<br>
-
-## Product
-
-### 최근 3일간 가장 많이 팔린 인기 상품 5개 조회 API
-
-> ![](https://img.shields.io/static/v1?label=&message=GET&color=blue) <br>
-> `/api/v1/products/best`
-
-<details markdown="1">
-<summary>스펙 상세</summary>
-
-#### Response
-
-<details markdown="1">
-<summary>200 OK : 성공적으로 조회된 경우</summary>
-
-|          필드명          | 데이터 타입 |     설명     |
-|:---------------------:|:------:|:----------:|
-|        `code`         | Number | HTTP 상태 코드 |
-|       `message`       | String | 요청 처리 메시지  |
-|        `data`         | Object |   응답 데이터   |
-|  `data.bestSellers`   | Array  |   상품 목록    |
-|  `product.productId`  | Number |   상품 ID    |
-| `product.productName` | String |   상품 이름    |
-|    `product.price`    | Number |   상품 가격    |
-|    `product.sales`    | Number |   상품 판매량   |
-|    `product.stock`    | Number |   상품 재고    |
-
-```json
-{
-  "code": 200,
-  "message": "요청이 정상적으로 처리되었습니다.",
-  "data": {
-    "bestSellers": [
-      {
-        "productId": 1,
-        "productName": "ice americano",
-        "price": 1000,
-        "sales": 100,
-        "stock": 100
-      },
-      {
-        "productId": 2,
-        "productName": "iPhone 12",
-        "price": 1200000,
-        "sales": 90,
-        "stock": 100
-      }
-    ]
-  }
-}
-```
-
-</details>
-</details>
-<br>
 
 ## Order
 
@@ -263,70 +147,6 @@
 
 ## Coupon
 
-### 사용자 보유 쿠폰 조회 API
-
-> ![](https://img.shields.io/static/v1?label=&message=GET&color=blue) <br>
-> `/api/v1/coupons?userId={userId}`
-
-<details markdown="1">
-<summary>스펙 상세</summary>
-
-#### Paramters
-
-**Query Params**
-
-|   필드명    | 데이터 타입 |       설명        |  필수여부  | 유효성 검사 |
-|:--------:|:------:|:---------------:|:------:|:-------|
-| `userId` | Number | 쿠폰을 조회하는 사용자 ID | **필수** | 양의 정수  |
-
-<details markdown="1">
-<summary>200 OK : 성공적으로 조회된 경우</summary>
-
-|          필드명          | 데이터 타입 |               설명                |
-|:---------------------:|:------:|:-------------------------------:|
-|        `code`         | Number |           HTTP 상태 코드            |
-|       `message`       | String |            요청 처리 메시지            |
-|        `data`         | Object |             응답 데이터              |
-|     `data.userId`     | Number |           조회된 사용자 ID            |
-|    `data.coupons`     | Array  |              쿠폰 목록              |
-|   `coupon.couponId`   | Number |              쿠폰 ID              |
-| `coupon.coupontTitle` | String |              쿠폰 이름              |
-| `coupon.discountType` | String | 쿠폰 할인 타입 (RATE: 정률, AMOUNT: 정액) |
-|  `coupon.startDate`   | String |             쿠폰 시작일              |
-|   `coupon.endDate`    | String |             쿠폰 종료일              |
-
-```json
-{
-  "code": 200,
-  "message": "요청이 정상적으로 처리되었습니다.",
-  "data": {
-    "userId": 1,
-    "coupons": [
-      {
-        "couponId": 1,
-        "coupontTitle": "10% 할인 쿠폰",
-        "discountType": "RATE",
-        "discountValue": 10,
-        "startDate": "2025-08-01",
-        "endDate": "2025-08-31"
-      },
-      {
-        "couponId": 2,
-        "coupontTitle": "10,000원 할인 쿠폰",
-        "discountType": "AMOUNT",
-        "discountValue": 10000,
-        "startDate": "2025-08-01",
-        "endDate": "2025-08-31"
-      }
-    ]
-  }
-}
-```
-
-</details>
-</details>
-<br>
-
 ### 선착순 쿠폰 발급 API
 
 > ![](https://img.shields.io/static/v1?label=&message=POST&color=brightgreen) <br>
@@ -426,24 +246,9 @@ API 에러 상황 정리
 
 ---
 
-### 4️⃣-2 결제 처리 API
-
-`POST /api/v1/points/use`
-
-| 에러 상황 | 에러 코드 | 에러 메시지 |
-| --- | --- | --- |
-| 사용자 ID 유효하지 않음 | 400 | 유효하지 않은 사용자 ID입니다. |
-| 사용자 존재하지 않음 | 404 | 사용자를 찾을 수 없습니다. |
-| 주문 ID 유효하지 않음 | 400 | 유효하지 않은 주문 ID입니다. |
-| 주문 존재하지 않음 | 404 | 주문을 찾을 수 없습니다. |
-| 주문 상태가 결제 불가능 | 409 | 결제가 불가능한 주문 상태입니다. |
-| 포인트 부족 | 409 | 포인트가 부족합니다. |
-| 내부 오류 | 500 | 서버 내부 오류가 발생했습니다. |
-
----
 이하 문서 참조
 
-5. [DB 인덱스 적용 조 성능 개선](docs/DB_indexing_report.md) (자세한 내용 문서 참조)
+# 5. [DB 인덱스 적용 조 성능 개선](docs/DB_indexing_report.md) (자세한 내용 문서 참조)
 성능분석
 ## 인덱스 적용 전후 성능 비교
 
@@ -454,8 +259,8 @@ API 에러 상황 정리
 | **데이터 검색 방식** | 전체 테이블 스캔      | 인덱스 검색   |
 | **처리 행 수**      | 1,000,000건          | 100건     |
 
-6. [DB기반 동시성 이슈 개선](docs/Concurrency_Report.md) - 경합 발생 빈도, 기능의 중요도에 따른 낙관적 락, 비관적 락 사용 (자세한 내용 문서 참조)
-7. [Redis 기반 캐싱 전략](docs/Cache_report.md) 
+# 6. [DB기반 동시성 이슈 개선](docs/Concurrency_Report.md) - 경합 발생 빈도, 기능의 중요도에 따른 낙관적 락, 비관적 락 사용 (자세한 내용 문서 참조)
+# 7. [Redis 기반 캐싱 전략](docs/Cache_report.md) 
 - Redis 캐시 적용 성능 향상
 ![image](https://github.com/user-attachments/assets/4c573a0c-d38c-42d0-b34a-5c5ec2326464)
 
@@ -476,7 +281,7 @@ DB 조회 빈도 최소화: 애플리케이션 전반에서 인기 상품 조회
 #### 결론 및 기대 효과
 항목 효과 보유 쿠폰 캐시 적용 응답 속도 약 1/3 단축, DB 부하 감소 캐시 TTL/무효화 설정 신선한 데이터 유지 및 오염 방지 인기 상품 캐시 전략 항상 캐시 유지, 조회 속도 안정성 확보
 
-8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_report.md)
+# 8. [Redis 자료구조 사용 TOP10 인기 상품 조회 및 Redis Lock 사용 동시성 제어 및 대용량 트래픽 쿠폰 발급 비동기 이벤트 설계](docs/redis_ranked_and_asynchronous_report.md)
 ### 시스템 설계  
 #### Redis 기반 TOP10 인기 상품 조회  
 상품 결제마다 주문 수량만큼 해당 상품의 score를 증가하고, 조회시 레디스 ZSet 자료구조 사용하여 스코어 순서로 10 건의 productid 순차 조회 후 DB 조회한다.  
@@ -522,11 +327,11 @@ DB 조회 빈도 최소화: 애플리케이션 전반에서 인기 상품 조회
 | 테스트 용이성    | Redis, DB 모두 단위 테스트 및 통합 테스트 가능 (동시성 시나리오 포함)                    |
 
 (자세한 내용 문서 참조)
-9. [서비스 MSA 확장 서비스 설계 및 분산트랜잭션](docs/MSA_Architecture_Change_Design_Report.md)
-10. [주문 정보 외부 전송 kafka 메시지 처리](docs/kafka_basic_learning.md) 
+# 9. [서비스 MSA 확장 서비스 설계 및 분산트랜잭션](docs/MSA_Architecture_Change_Design_Report.md)
+# 10. [주문 정보 외부 전송 kafka 메시지 처리](docs/kafka_basic_learning.md) 
 - 카프카에 대한 기본 학습 자료 정리 및 주문 프로세스 완료 시 비동기 이벤트 발행 후 kafka 메시지로 주문 정보 외부 전송 을 구현하였으며,
   이렇게 구현한 이유는 현재는 주문 프로세스 완료 후 처리하는 기능은 주문 정보 외부 전송 뿐이지만 추후 알림 서비스 등의 확정성을 고려하여 설계 및 구현
-11. [카프카 활용 선착순 쿠폰 발급 대용량 트래픽 비동기 처리 설계 및 구현](docs/kafka_design_report.md)
+# 11. [카프카 활용 선착순 쿠폰 발급 대용량 트래픽 비동기 처리 설계 및 구현](docs/kafka_design_report.md)
   기존 Spring 내장 이벤트 기반으로 처리되던 선착순 쿠폰 발급 로직을 Kafka 기반의 비동기 메시징 시스템으로 변경하여 대용량 트래픽에도 견딜 수 있는 확장성, 장애 분리, 메시지 유실 방지, 재처리 용이성을 확보
   ![image](https://github.com/user-attachments/assets/bca4898b-0d6c-44cb-8d92-0cbbd1c4ece9)
 
