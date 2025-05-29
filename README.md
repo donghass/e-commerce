@@ -1,5 +1,5 @@
 ## 이커머스 프로젝트
-### Clean + Layered Architecture
+### Clean + Layered Architecture 설계
 ![image](https://github.com/user-attachments/assets/a4c2ba66-6fab-4deb-96fe-eae9074fa102)
 - 애플리케이션의 핵심은 비즈니스 로직
 - 데이터 계층 및 API 계층이 비즈니스 로직을 의존 ( 비즈니스의 Interface 활용 )
