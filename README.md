@@ -260,7 +260,7 @@ API 에러 상황 정리
 | **처리 행 수**      | 1,000,000건          | 100건     |
 
 # 6. [DB기반 동시성 이슈 개선](docs/Concurrency_Report.md) - 경합 발생 빈도, 기능의 중요도에 따른 낙관적 락, 비관적 락 사용 (자세한 내용 문서 참조)
-# 7. [Redis 기반 캐싱 전략](docs/Cache_report.md) (문서 참조)
+# 7. [Redis 기반 캐싱 전략](docs/Cache_report.md) (자세한 내용 문서 참조)
 - Redis 캐시 적용 성능 향상
 ![image](https://github.com/user-attachments/assets/4c573a0c-d38c-42d0-b34a-5c5ec2326464)
 
@@ -331,7 +331,7 @@ DB 조회 빈도 최소화: 애플리케이션 전반에서 인기 상품 조회
 # 10. [주문 정보 외부 전송 kafka 메시지 처리](docs/kafka_basic_learning.md) 
 - 카프카에 대한 기본 학습 자료 정리 및 주문 프로세스 완료 시 비동기 이벤트 발행 후 kafka 메시지로 주문 정보 외부 전송 을 구현하였으며,
   이렇게 구현한 이유는 현재는 주문 프로세스 완료 후 처리하는 기능은 주문 정보 외부 전송 뿐이지만 추후 알림 서비스 등의 확정성을 고려하여 설계 및 구현
-# 11. [카프카 활용 선착순 쿠폰 발급 대용량 트래픽 비동기 처리 설계 및 구현](docs/kafka_design_report.md)
+# 11. [카프카 활용 선착순 쿠폰 발급 대용량 트래픽 비동기 처리 설계 및 구현](docs/kafka_design_report.md) (자세한 내용 문서 참조)
   기존 Spring 내장 이벤트 기반으로 처리되던 선착순 쿠폰 발급 로직을 Kafka 기반의 비동기 메시징 시스템으로 변경하여 대용량 트래픽에도 견딜 수 있는 확장성, 장애 분리, 메시지 유실 방지, 재처리 용이성을 확보
   ![image](https://github.com/user-attachments/assets/bca4898b-0d6c-44cb-8d92-0cbbd1c4ece9)
 
