@@ -14,6 +14,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
@@ -28,22 +29,22 @@ public class KafkaConfig {
         this.objectMapper = objectMapper;
     }
 
-    // 1) DLQ Recoverer 등록
+    // DLQ Recoverer 등록
     @Bean
     public DeadLetterPublishingRecoverer recoverer(KafkaTemplate<Object, Object> kafkaTemplate) {
         return new DeadLetterPublishingRecoverer(
             kafkaTemplate,
-            (record, ex) -> new TopicPartition(record.topic() + ".DLT", record.partition())
+            (record, ex) -> new TopicPartition(record.topic() + ".DLQ", record.partition())
         );
     }
 
-    // 2) 에러 핸들러 등록
+    // 에러 핸들러 등록
     @Bean
     public DefaultErrorHandler errorHandler(DeadLetterPublishingRecoverer recoverer) {
         return new DefaultErrorHandler(recoverer, new FixedBackOff(1000L, 2)); // 재시도 2번 후 DLQ
     }
 
-    // 3) KafkaListener에 위 에러핸들러 연결
+    // KafkaListener에 위 에러핸들러 연결
     @Bean
     public ConcurrentKafkaListenerContainerFactory<Object, Object> kafkaListenerContainerFactory(
         ConsumerFactory<Object, Object> consumerFactory,
@@ -78,6 +79,8 @@ public class KafkaConfig {
         factory.setConsumerFactory(couponConsumerFactory());
         factory.setCommonErrorHandler(errorHandler); // DLQ 처리
         factory.setConcurrency(3);
+        // 수동 ack 모드 설정
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         return factory;
     }
     @Bean

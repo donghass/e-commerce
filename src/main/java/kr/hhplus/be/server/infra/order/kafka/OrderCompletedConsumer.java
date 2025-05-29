@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Component
-public class KafkaOrderCompletedConsumer {
+public class OrderCompletedConsumer {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     public static final String DATA_PLATFORM_URL = "https://mock-dataplatform.com/api/payments";
 
-    public KafkaOrderCompletedConsumer(ObjectMapper objectMapper, RestTemplate restTemplate) {
+    public OrderCompletedConsumer(ObjectMapper objectMapper, RestTemplate restTemplate) {
         this.objectMapper = objectMapper;
         this.restTemplate = restTemplate;
     }
