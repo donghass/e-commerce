@@ -31,6 +31,12 @@ public class LoggingFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        // favicon 요청은 무시하고 바로 체인 실행
+        if ("/favicon.ico".equals(httpRequest.getRequestURI())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         long startTime = System.currentTimeMillis();
 
         // 요청 파라미터를 문자열로 변환
