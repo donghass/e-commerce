@@ -4,8 +4,7 @@
 - 애플리케이션의 핵심은 비즈니스 로직
 - 데이터 계층 및 API 계층이 비즈니스 로직을 의존 ( 비즈니스의 Interface 활용 )
 - 도메인 중심적인 계층 아키텍처
-- Presentation 은 도메인을 API로 서빙, DataSource 는 도메인이 필요로 하는 기능을 서빙
-- DIP 🆗 OCP 🆗
+- Presentation 은 도메인을 API로 서빙, DataSource 는 도메인이 필요로 하는 기능을 서빙 
   
 ### 설계 문서
 
